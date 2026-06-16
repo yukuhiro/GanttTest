@@ -1,0 +1,3517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Art Production Roadmap 2026</title>
+<!-- No external dependencies — Excel export uses pure JS XML Spreadsheet format -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+:root{
+  --lw:180px; --bslot:36px; --bh:24px; --rpad:10px; --dw:4.6px;
+  --bg:#F0F2F8; --surf:#fff; --bdr:#DDE2F0; --txt:#18192A; --muted:#7882A4;
+  --acc:#3D5AF1; --hbg:#0E1016; --pw:340px;
+  --c-art:#F59E0B; --c-branch:#8B5CF6; --c-force:#EF4444;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--txt);overflow:hidden;height:100vh;display:flex;flex-direction:column}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--hbg);padding:8px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;z-index:200;border-bottom:1px solid rgba(255,255,255,.06)}
+.topbar-logo{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:#fff;letter-spacing:-.5px;white-space:nowrap}
+.topbar-logo span{color:#3D5AF1}
+.topbar-sep{width:1px;height:20px;background:rgba(255,255,255,.1);flex-shrink:0}
+.controls{display:flex;gap:5px;align-items:center;flex-wrap:wrap;flex:1}
+.btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.85);font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:500;padding:4px 10px;border-radius:4px;cursor:pointer;transition:.12s;white-space:nowrap;line-height:1.4}
+.btn:hover{background:rgba(255,255,255,.13);color:#fff}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn.pri{background:#3D5AF1;border-color:#3D5AF1;color:#fff}
+.btn.pri:hover{background:#2D47D8}
+.btn.imp{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#10B981}
+.btn.imp:hover{background:rgba(16,185,129,.25)}
+.btn.exp{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#F59E0B}
+.btn.exp:hover{background:rgba(245,158,11,.22)}
+.btn-grp{display:flex;gap:0}
+.btn-grp .btn{border-radius:0}
+.btn-grp .btn:first-child{border-radius:4px 0 0 4px}
+.btn-grp .btn:last-child{border-radius:0 4px 4px 0}
+.topbar-right{display:flex;gap:5px;align-items:center;margin-left:auto;flex-shrink:0}
+
+/* ── STATUS BAR ── */
+.statusbar{background:#0A0C12;padding:5px 14px;display:flex;align-items:center;gap:16px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.04)}
+.sleg{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.4)}
+.sdot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.ssep{width:1px;height:12px;background:rgba(255,255,255,.08)}
+.ms-leg{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.shortcut-hint{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(255,255,255,.2)}
+
+/* ── MAIN ── */
+.main{display:flex;flex:1;overflow:hidden}
+.gantt-scroll{flex:1;overflow:auto;display:flex;flex-direction:column;scroll-behavior:smooth}
+.gantt-inner{display:flex;min-width:max-content}
+
+/* ── LEFT ── */
+.left{width:var(--lw);flex-shrink:0;position:sticky;left:0;z-index:60;background:var(--surf);border-right:2px solid var(--bdr);display:flex;flex-direction:column}
+.lhdr{background:var(--hbg);display:flex;align-items:flex-end;padding:0 12px 7px;flex-shrink:0}
+.lhdr span{font-size:9px;font-weight:600;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1.5px;font-family:'IBM Plex Mono',monospace}
+.lhdr-ms{background:#060810;padding:0 10px;display:flex;align-items:center;flex-shrink:0}
+.lhdr-ms span{font-size:9px;font-weight:500;color:rgba(255,255,255,.25);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+.artist-rows{flex:1}
+.artist-row{display:flex;align-items:flex-start;padding:6px 9px;border-bottom:1px solid var(--bdr);gap:7px;position:relative;transition:background .1s}
+.artist-row:hover{background:#F5F7FF}
+.artist-row.selected-artist{background:#EEF2FF;border-left:3px solid var(--acc)}
+.artist-row.drop-target{background:#EEF2FF;border-right:3px solid var(--acc)}
+.av{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px;font-family:'IBM Plex Mono',monospace}
+.a-info{flex:1;min-width:0}
+.a-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;padding:1px 3px;border-radius:3px;transition:.1s}
+.a-name:hover{background:rgba(61,90,241,.1);color:var(--acc)}
+.a-meta{font-size:9px;color:var(--muted);margin-top:2px;font-family:'IBM Plex Mono',monospace}
+.wl-bg{height:2px;background:var(--bdr);border-radius:2px;margin-top:4px}
+.wl-f{height:100%;border-radius:2px;transition:width .4s}
+.add-task-btn{position:absolute;right:5px;top:6px;width:16px;height:16px;border-radius:3px;border:1px dashed var(--bdr);background:none;color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.1s;opacity:0}
+.artist-row:hover .add-task-btn{opacity:1}
+.add-task-btn:hover{background:var(--acc);border-color:var(--acc);color:#fff}
+.add-artist-row{padding:7px 9px;border-bottom:1px solid var(--bdr);cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--muted);font-size:11px;transition:.1s}
+.add-artist-row:hover{background:#F5F7FF;color:var(--acc)}
+
+/* ── RIGHT ── */
+.right{flex:1;display:flex;flex-direction:column;min-width:0}
+.tl-header{background:var(--hbg);position:sticky;top:0;z-index:55;flex-shrink:0}
+.month-row,.week-row{display:flex}
+.month-row{height:28px}
+.week-row{height:28px}
+.month-lbl{display:flex;align-items:center;justify-content:center;height:100%;font-size:10px;font-weight:600;color:rgba(255,255,255,.7);border-right:1px solid rgba(255,255,255,.06);font-family:'IBM Plex Mono',monospace;letter-spacing:.5px}
+.week-lbl{display:flex;align-items:center;justify-content:center;height:100%;font-size:8px;color:rgba(255,255,255,.25);font-family:'IBM Plex Mono',monospace;border-right:1px solid rgba(255,255,255,.04);flex-shrink:0}
+.week-lbl.tw{color:#22C55E;font-weight:600}
+
+/* ── MILESTONE ZONE (redesigned, 3 rows) ── */
+.ms-zone{background:#060810;border-bottom:2px solid #1A1E30;flex-shrink:0;position:relative}
+/* Row 2: Art Cutoff row */
+.ms-row-art{height:28px;position:relative;border-bottom:1px solid rgba(255,255,255,.03);display:flex;align-items:center}
+.ms-row-art::before{content:'✂ ART CUTOFF';position:sticky;left:calc(var(--lw));font-size:7px;color:rgba(245,158,11,.4);font-family:'IBM Plex Mono',monospace;letter-spacing:.8px;font-weight:600;padding-left:4px;white-space:nowrap;pointer-events:none}
+/* Row 3: Branch Cut row */
+.ms-row-branch{height:28px;position:relative;border-bottom:1px solid rgba(255,255,255,.03);display:flex;align-items:center}
+.ms-row-branch::before{content:'🌿 BRANCH CUT';position:sticky;left:calc(var(--lw));font-size:7px;color:rgba(139,92,246,.4);font-family:'IBM Plex Mono',monospace;letter-spacing:.8px;font-weight:600;padding-left:4px;white-space:nowrap;pointer-events:none}
+/* Row 4: Force Upgrade row */
+.ms-row-force{height:28px;position:relative;display:flex;align-items:center}
+.ms-row-force::before{content:'⬆ FORCE UPGRADE';position:sticky;left:calc(var(--lw));font-size:7px;color:rgba(239,68,68,.4);font-family:'IBM Plex Mono',monospace;letter-spacing:.8px;font-weight:600;padding-left:4px;white-space:nowrap;pointer-events:none}
+
+.ms-track{position:absolute;left:0;top:0;bottom:0;right:0;pointer-events:none}
+
+/* Event pill (rows 2-4) */
+.ms-pill{position:absolute;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:0;z-index:5;cursor:default;transition:top .15s}
+.ms-pill-dot{width:8px;height:8px;border-radius:2px;transform:rotate(45deg)}
+.ms-pill-ver{font-size:7.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;margin-top:1px;letter-spacing:.2px}
+
+/* Guide lines (through grid) */
+.guide-line{position:absolute;top:0;bottom:0;width:1px;pointer-events:none;z-index:2}
+.guide-art{border-left:2px dashed rgba(245,158,11,.55)}   /* amber  — Art Cutoff */
+.guide-branch{border-left:2px dashed rgba(139,92,246,.55)} /* purple — Branch Cut */
+.guide-force{border-left:2px dashed rgba(239,68,68,.55)}   /* red    — Force Upgrade */
+
+/* ── GRID ── */
+.grid-area{position:relative;flex:1}
+.grid-row{border-bottom:1px solid var(--bdr);position:relative;display:flex}
+.grid-row:nth-child(even){background:#F9FAFF}
+.grid-row.drop-target{background:#EEF2FF}
+.day-cell{height:100%;flex-shrink:0;border-right:none}
+.day-cell.ws{border-right:1px solid var(--bdr)}
+.day-cell.ms-col{border-right:1px solid #BFC8E0}
+.day-cell.we{background:rgba(0,0,0,.01)}
+.day-cell.td-col{background:rgba(245,158,11,.05)}
+.today-line{position:absolute;top:0;bottom:0;width:2px;background:#22C55E;z-index:4;pointer-events:auto;cursor:default}
+.today-line::before{content:'TODAY';position:absolute;top:2px;left:50%;transform:translateX(-50%);font-size:7px;font-weight:700;color:#22C55E;white-space:nowrap;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px}
+
+/* ── BARS ── */
+.bar-layer{position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none}
+.task-bar{position:absolute;height:var(--bh);border-radius:4px;display:flex;align-items:center;cursor:grab;pointer-events:all;user-select:none;overflow:visible;z-index:10;transition:box-shadow .1s}
+.task-bar:hover{box-shadow:0 2px 12px rgba(0,0,0,.2);z-index:20}
+.task-bar.dragging{cursor:grabbing;box-shadow:0 6px 24px rgba(0,0,0,.3);opacity:.9;z-index:200}
+.task-bar.selected{outline:2px solid #fff;outline-offset:1px;z-index:25}
+.task-bar.tbd{background:transparent!important;border:2px dashed rgba(255,255,255,.4)!important}
+.task-bar.tbd .bar-body{opacity:.7}
+.bar-pri-stripe{width:4px;height:100%;border-radius:4px 0 0 4px;flex-shrink:0}
+.bar-body{flex:1;padding:0 4px 0 4px;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.bar-title{font-size:9.5px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.bar-sub{font-size:7.5px;color:rgba(255,255,255,.6);font-family:'IBM Plex Mono',monospace;margin-top:1px;display:flex;align-items:center;gap:3px}
+.bar-jira{color:rgba(255,255,255,.8);text-decoration:none;font-size:7.5px;font-family:'IBM Plex Mono',monospace;background:rgba(0,0,0,.22);padding:1px 4px;border-radius:3px;pointer-events:all;cursor:pointer;transition:.1s;white-space:nowrap}
+.bar-jira:hover{background:rgba(0,0,0,.4);color:#fff}
+.bar-badge{position:absolute;top:-8px;right:2px;font-size:8px;font-weight:700;font-family:'IBM Plex Mono',monospace;padding:1px 4px;border-radius:3px;color:#fff;line-height:1.4;letter-spacing:.3px}
+.bar-tbd-label{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:7px;font-family:'IBM Plex Mono',monospace;color:rgba(255,255,255,.5);white-space:nowrap;background:rgba(0,0,0,.3);padding:1px 4px;border-radius:3px}
+.bar-del{position:absolute;top:-8px;left:2px;width:14px;height:14px;border-radius:50%;background:#EF4444;color:#fff;font-size:9px;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:30}
+.task-bar:hover .bar-del{display:flex}
+.bar-resize-r{position:absolute;right:0;top:0;bottom:0;width:5px;cursor:ew-resize;border-radius:0 4px 4px 0}
+
+/* ── TOOLTIP ── */
+.tooltip{position:fixed;background:#0E1016;color:#fff;padding:10px 12px;border-radius:6px;font-size:11px;pointer-events:none;z-index:2000;max-width:240px;box-shadow:0 6px 20px rgba(0,0,0,.4);opacity:0;transition:opacity .08s;line-height:1.7;border:1px solid rgba(255,255,255,.08)}
+.tooltip.show{opacity:1}
+.tooltip strong{display:block;margin-bottom:3px;font-size:12px;line-height:1.3}
+.tt-jira{color:#60A5FA;font-family:'IBM Plex Mono',monospace;font-size:10px;text-decoration:underline;cursor:pointer}
+
+/* ── EDIT PANEL ── */
+.edit-panel{position:fixed;right:0;top:0;bottom:0;width:var(--pw);background:var(--surf);border-left:1px solid var(--bdr);box-shadow:-4px 0 20px rgba(0,0,0,.1);z-index:500;display:flex;flex-direction:column;transform:translateX(var(--pw));transition:transform .2s}
+.edit-panel.open{transform:translateX(0)}
+.ep-hdr{background:var(--hbg);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06)}
+.ep-hdr h3{font-size:12px;font-weight:700;color:#fff;font-family:'IBM Plex Mono',monospace;letter-spacing:.3px}
+.ep-close{background:none;border:none;color:rgba(255,255,255,.4);font-size:16px;cursor:pointer}
+.ep-close:hover{color:#fff}
+.ep-body{flex:1;overflow-y:auto;padding:14px}
+.fg{margin-bottom:11px}
+.fg label{display:block;font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-family:'IBM Plex Mono',monospace}
+.fg input,.fg select,.fg textarea{width:100%;border:1px solid var(--bdr);border-radius:5px;padding:6px 9px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:var(--txt);background:var(--bg);outline:none;transition:.1s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--acc);background:#fff}
+.fg textarea{resize:vertical;min-height:44px}
+.jira-prev{margin-top:4px;display:none}
+.jira-prev a{font-size:10px;color:var(--acc);text-decoration:none;font-family:'IBM Plex Mono',monospace;word-break:break-all}
+.jira-prev a:hover{text-decoration:underline}
+.ep-foot{padding:11px 14px;border-top:1px solid var(--bdr);display:flex;gap:7px}
+.ep-foot .btn{flex:1;text-align:center;padding:8px;font-size:12px}
+.ep-div{height:1px;background:var(--bdr);margin:8px 0 12px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ── CONFIG PANEL ── */
+.cfg-panel{position:fixed;top:44px;right:14px;width:290px;background:var(--surf);border:1px solid var(--bdr);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.15);z-index:600;padding:14px;display:none}
+.cfg-panel.open{display:block}
+.cfg-panel h3{font-size:11px;font-weight:700;margin-bottom:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:.3px}
+.cfg-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;font-size:11px}
+.cfg-row label{color:var(--muted);font-weight:500}
+.cfg-row input[type=range]{width:110px;accent-color:var(--acc)}
+.cfg-row input[type=checkbox]{accent-color:var(--acc);width:14px;height:14px}
+.cfg-row input[type=date]{border:1px solid var(--bdr);border-radius:4px;padding:3px 6px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--txt);background:var(--bg);outline:none;width:120px}
+.cfg-val{font-size:11px;color:var(--acc);font-family:'IBM Plex Mono',monospace;font-weight:600;min-width:30px;text-align:right}
+.cfg-sep{height:1px;background:var(--bdr);margin:9px 0}
+.cfg-section{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;font-family:'IBM Plex Mono',monospace}
+.cfg-close{position:absolute;top:10px;right:12px;background:none;border:none;font-size:14px;cursor:pointer;color:var(--muted)}
+.cfg-close:hover{color:var(--txt)}
+
+/* ── IMPORT DROP ZONE ── */
+.drop-overlay{position:fixed;inset:0;background:rgba(61,90,241,.15);border:3px dashed var(--acc);z-index:1000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px}
+.drop-overlay.active{display:flex}
+.drop-overlay p{font-size:18px;font-weight:700;color:var(--acc);font-family:'IBM Plex Mono',monospace}
+
+/* ── UNDO TOAST ── */
+
+/* ── GOOGLE DRIVE ── */
+.gdrive-btn{background:rgba(66,133,244,.15);border:1px solid rgba(66,133,244,.35);color:#4285F4}
+.gdrive-btn:hover{background:rgba(66,133,244,.28);color:#fff}
+.gdrive-btn.connected{background:rgba(52,168,83,.15);border-color:rgba(52,168,83,.35);color:#34A853}
+.gdrive-btn.connected:hover{background:rgba(52,168,83,.25)}
+.gd-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px}
+.gd-box{background:#fff;border-radius:12px;padding:26px;max-width:520px;width:100%;font-family:'IBM Plex Sans',sans-serif;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.gd-box h3{font-size:15px;font-weight:700;margin-bottom:4px;color:#18192A}
+.gd-box p{font-size:12px;color:#555;line-height:1.65;margin-bottom:14px}
+.gd-steps{counter-reset:step;margin-bottom:16px}
+.gd-step{display:flex;gap:10px;margin-bottom:10px;font-size:12px;color:#333;line-height:1.6}
+.gd-step-n{width:20px;height:20px;border-radius:50%;background:#3D5AF1;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.gd-input{width:100%;border:1.5px solid #DDE2F0;border-radius:6px;padding:9px 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#18192A;outline:none;margin-bottom:10px;transition:.15s}
+.gd-input:focus{border-color:#4285F4;background:#F8FBFF}
+.gd-input.err{border-color:#EF4444;background:#FFF5F5}
+.gd-hint{font-size:10px;color:#7882A4;margin-bottom:14px;font-family:'IBM Plex Mono',monospace}
+.gd-link{color:#3D5AF1;text-decoration:none}
+.gd-link:hover{text-decoration:underline}
+.gd-row{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.gd-status{font-size:11px;font-family:'IBM Plex Mono',monospace;margin-right:auto}
+.gd-status.ok{color:#34A853}.gd-status.err{color:#EF4444}.gd-status.loading{color:#F59E0B}
+
+
+/* ── INLINE PROMPT ── */
+.iprompt-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:4000;display:flex;align-items:center;justify-content:center}
+.iprompt-box{background:#fff;border-radius:10px;padding:22px 24px;min-width:320px;box-shadow:0 16px 48px rgba(0,0,0,.3);font-family:'IBM Plex Sans',sans-serif}
+.iprompt-box label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-family:'IBM Plex Mono',monospace}
+.iprompt-box input{width:100%;border:1.5px solid var(--bdr);border-radius:6px;padding:9px 12px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;color:var(--txt);outline:none;transition:.15s}
+.iprompt-box input:focus{border-color:var(--acc);background:#F8FBFF}
+.iprompt-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+
+
+/* ── AUTOSAVE ── */
+.save-indicator{position:fixed;bottom:10px;right:14px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);background:rgba(0,0,0,.5);padding:3px 8px;border-radius:10px;z-index:500;transition:opacity .4s;pointer-events:none;letter-spacing:.3px}
+.save-indicator.saving{color:#F59E0B}
+.save-indicator.saved{color:#34A853}
+.save-indicator.restored{color:#60A5FA}
+
+
+/* ── MILESTONE EDITOR ── */
+.ms-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px}
+.ms-box{background:#fff;border-radius:12px;padding:0;max-width:680px;width:100%;font-family:'IBM Plex Sans',sans-serif;box-shadow:0 24px 64px rgba(0,0,0,.35);display:flex;flex-direction:column;max-height:90vh}
+.ms-head{padding:20px 24px 14px;border-bottom:1px solid #EEF0F8}
+.ms-head h3{font-size:14px;font-weight:700;color:#18192A;margin:0 0 2px}
+.ms-head p{font-size:11px;color:#7882A4;margin:0}
+.ms-body{padding:16px 24px;overflow-y:auto;flex:1}
+.ms-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px}
+.ms-table th{text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7882A4;font-family:'IBM Plex Mono',monospace;padding:0 6px 8px;border-bottom:2px solid #EEF0F8}
+.ms-table th.col-art{color:var(--c-art)}
+.ms-table th.col-branch{color:var(--c-branch)}
+.ms-table th.col-force{color:var(--c-force)}
+.ms-table td{padding:4px 4px}
+.ms-table tr:hover td{background:#F8FAFF}
+.ms-table input{width:100%;border:1.5px solid #E4E8F0;border-radius:5px;padding:5px 7px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#18192A;outline:none;transition:.12s}
+.ms-table input:focus{border-color:var(--acc);background:#F4F6FF}
+.ms-table input.art:focus{border-color:var(--c-art)}
+.ms-table input.branch:focus{border-color:var(--c-branch)}
+.ms-table input.force:focus{border-color:var(--c-force)}
+.ms-table .del-btn{background:none;border:none;color:#DDE2F0;cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;transition:.1s}
+.ms-table .del-btn:hover{color:#EF4444;background:#FFF1F1}
+.ms-eye{background:none;border:none;cursor:pointer;font-size:15px;padding:2px 5px;border-radius:4px;transition:.1s;opacity:.9;line-height:1}
+.ms-eye:hover{background:#F0F2F8}
+.ms-eye.hidden{opacity:.3;filter:grayscale(1)}
+.ms-table tr.ms-hidden td{opacity:.35}
+.ms-table tr.ms-hidden input{color:#AAB0C4}
+
+.ms-sep{border:none;border-top:1px solid #EEF0F8;margin:14px 0}
+.ms-paste-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7882A4;font-family:'IBM Plex Mono',monospace;margin-bottom:6px}
+.ms-paste-hint{font-size:11px;color:#7882A4;margin-bottom:8px;line-height:1.6}
+.ms-paste-area{width:100%;border:1.5px dashed #DDE2F0;border-radius:7px;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#18192A;resize:vertical;min-height:80px;outline:none;transition:.15s;background:#FAFBFF}
+.ms-paste-area:focus{border-color:var(--acc);background:#F4F6FF}
+.ms-paste-area::placeholder{color:#BCC2D4}
+.ms-foot{padding:14px 24px;border-top:1px solid #EEF0F8;display:flex;gap:8px;align-items:center}
+.ms-foot-note{font-size:10px;color:#7882A4;margin-right:auto;font-family:'IBM Plex Mono',monospace}
+
+
+/* ── SCREENSHOT SCAN ── */
+.ms-img-zone{border:2px dashed #DDE2F0;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:.15s;background:#FAFBFF;margin-bottom:12px;position:relative}
+.ms-img-zone:hover{border-color:var(--acc);background:#F4F6FF}
+.ms-img-zone.drag-over{border-color:var(--acc);background:#EEF2FF}
+.ms-img-zone.scanning{border-color:#F59E0B;background:#FFFBEB;cursor:default}
+.ms-img-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.ms-img-preview{max-width:100%;max-height:120px;border-radius:5px;margin-top:8px;display:none}
+.ms-scan-status{font-size:11px;font-family:'IBM Plex Mono',monospace;margin-top:8px;min-height:16px}
+.ms-scan-status.ok{color:#34A853}.ms-scan-status.err{color:#EF4444}.ms-scan-status.scanning{color:#F59E0B}
+
+
+/* ── PTO ── */
+.pto-badge{display:inline-flex;align-items:center;gap:3px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#6366F1;border-radius:10px;font-size:9px;font-weight:600;padding:1px 6px;cursor:pointer;margin-top:3px;font-family:'IBM Plex Mono',monospace;transition:.1s}
+.pto-badge:hover{background:rgba(99,102,241,.22);color:#4F46E5}
+.pto-badge.empty{opacity:0;pointer-events:none}
+.artist-row:hover .pto-badge.empty{opacity:1;pointer-events:all}
+.pto-bar{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,rgba(99,102,241,.13),rgba(99,102,241,.13) 4px,rgba(99,102,241,.04) 4px,rgba(99,102,241,.04) 8px);border-left:2px solid rgba(99,102,241,.4);border-right:2px solid rgba(99,102,241,.4);pointer-events:all;z-index:3;cursor:default;border-radius:2px}
+.pto-bar:hover::after{content:attr(data-tip);position:absolute;top:-24px;left:50%;transform:translateX(-50%);background:#3730A3;color:#fff;font-size:10px;padding:3px 8px;border-radius:4px;white-space:nowrap;font-family:'IBM Plex Mono',monospace;pointer-events:none;z-index:100}
+
+/* PTO modal */
+.pto-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3500;display:flex;align-items:center;justify-content:center;padding:20px}
+.pto-box{background:#fff;border-radius:12px;padding:0;max-width:480px;width:100%;font-family:'IBM Plex Sans',sans-serif;box-shadow:0 20px 56px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:80vh}
+.pto-head{padding:18px 22px 12px;border-bottom:1px solid #EEF0F8;display:flex;align-items:center;justify-content:space-between}
+.pto-head h3{font-size:13px;font-weight:700;color:#18192A;margin:0}
+.pto-head p{font-size:11px;color:#7882A4;margin:2px 0 0}
+.pto-body{padding:14px 22px;overflow-y:auto;flex:1}
+.pto-list{margin-bottom:12px}
+.pto-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #EEF0F8;border-radius:7px;margin-bottom:6px;font-size:12px;background:#FAFBFF}
+.pto-item-dates{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#18192A;flex:1}
+.pto-item-label{color:#7882A4;font-size:11px;flex:1;font-style:italic}
+.pto-del{background:none;border:none;color:#DDE2F0;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:3px;transition:.1s}
+.pto-del:hover{color:#EF4444;background:#FFF1F1}
+.pto-add-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pto-add-row input[type=date]{border:1.5px solid #DDE2F0;border-radius:5px;padding:6px 8px;font-size:11px;font-family:'IBM Plex Mono',monospace;outline:none;transition:.15s;color:#18192A}
+.pto-add-row input[type=date]:focus{border-color:#6366F1}
+.pto-add-row input[type=text]{border:1.5px solid #DDE2F0;border-radius:5px;padding:6px 8px;font-size:11px;flex:1;outline:none;transition:.15s;color:#18192A;font-family:'IBM Plex Sans',sans-serif;min-width:100px}
+.pto-add-row input[type=text]:focus{border-color:#6366F1}
+.pto-foot{padding:12px 22px;border-top:1px solid #EEF0F8;display:flex;justify-content:flex-end;gap:8px}
+
+.undo-toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(50px);background:#0E1016;color:#fff;padding:7px 16px;border-radius:20px;font-size:11px;font-weight:500;z-index:1000;transition:transform .2s,opacity .2s;opacity:0;pointer-events:none;border:1px solid rgba(255,255,255,.1);font-family:'IBM Plex Mono',monospace}
+.undo-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ── WORKLOAD ── */
+.wl-panel{position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:2px solid var(--bdr);padding:11px 16px;z-index:300;display:none;max-height:180px;overflow-y:auto}
+.wl-panel.show{display:block}
+.wl-panel h3{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-family:'IBM Plex Mono',monospace}
+.wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px}
+.wl-card{background:var(--bg);border:1px solid var(--bdr);border-radius:6px;padding:8px 10px}
+.wl-card .wn{font-size:11px;font-weight:600}
+.wl-card .wt{font-size:9px;color:var(--muted);margin-top:1px;font-family:'IBM Plex Mono',monospace}
+.wl-bg2{height:4px;background:var(--bdr);border-radius:2px;margin-top:6px}
+.wl-bf{height:100%;border-radius:2px;transition:width .4s}
+
+/* ═══════════════════════════════════════════════════════
+   MODERN REFRESH — overlay pass
+═══════════════════════════════════════════════════════ */
+
+/* ── Root refinements ── */
+:root {
+  --hbg: #0D0F1A;
+  --bg:  #EDEEF4;
+  --surf: #FFFFFF;
+  --bdr: #E0E3EF;
+  --acc: #4F6EF7;
+  --radius-bar: 7px;
+}
+
+/* ── Topbar ── */
+.topbar {
+  background: linear-gradient(180deg, #161829 0%, #0D0F1A 100%);
+  padding: 9px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  box-shadow: 0 1px 0 rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.25);
+}
+.topbar-logo {
+  font-size: 13px;
+  letter-spacing: -.3px;
+}
+.btn {
+  border-radius: 6px;
+  font-size: 11px;
+  padding: 5px 11px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.11);
+  transition: all .15s;
+}
+.btn:hover {
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.2);
+}
+.btn.pri {
+  background: #4F6EF7;
+  border-color: #4F6EF7;
+  box-shadow: 0 1px 8px rgba(79,110,247,.35);
+}
+.btn.pri:hover {
+  background: #3D5EE8;
+  box-shadow: 0 2px 12px rgba(79,110,247,.45);
+}
+.btn-grp .btn { border-radius: 0; }
+.btn-grp .btn:first-child { border-radius: 6px 0 0 6px; }
+.btn-grp .btn:last-child  { border-radius: 0 6px 6px 0; }
+
+/* ── Status bar ── */
+.statusbar {
+  background: #090B14;
+  padding: 5px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+}
+.sdot { border-radius: 50%; width: 7px; height: 7px; }
+.shortcut-hint { color: rgba(255,255,255,.16); font-size: 9px; }
+
+/* ── Left sidebar ── */
+.left {
+  background: var(--surf);
+  border-right: 1px solid var(--bdr);
+}
+.artist-row { padding: 7px 10px; border-bottom: 1px solid var(--bdr); }
+.artist-row:hover { background: #F4F6FF; }
+.a-name { font-size: 12px; font-weight: 600; }
+.a-meta { font-size: 9px; margin-top: 1px; }
+.av {
+  border-radius: 8px;
+  width: 28px; height: 28px;
+  font-size: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+}
+.add-task-btn { border-radius: 5px; }
+
+/* ── Grid ── */
+.grid-row:nth-child(even) { background: #F7F8FD; }
+.grid-row { border-bottom: 1px solid #E8EBF5; }
+.day-cell.ws { border-right: 1px solid #E0E3EF; }
+.day-cell.we { background: rgba(0,0,0,.012); }
+.day-cell.td-col { background: rgba(34,197,94,.04); }
+
+/* ── Task bars ── */
+.task-bar {
+  border-radius: var(--radius-bar);
+  box-shadow: 0 1px 3px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.15);
+  transition: box-shadow .15s, transform .1s;
+}
+.task-bar:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.15);
+  transform: translateY(-1px);
+  z-index: 20;
+}
+.task-bar.dragging {
+  box-shadow: 0 10px 32px rgba(0,0,0,.35);
+  transform: translateY(-2px) scale(1.01);
+}
+.task-bar.selected {
+  outline: 2px solid rgba(255,255,255,.9);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(255,255,255,.15), 0 4px 16px rgba(0,0,0,.3);
+}
+.bar-pri-stripe { border-radius: var(--radius-bar) 0 0 var(--radius-bar); }
+.bar-resize-r   { border-radius: 0 var(--radius-bar) var(--radius-bar) 0; }
+.bar-title { font-size: 10px; font-weight: 600; letter-spacing: -.1px; }
+.bar-sub   { font-size: 7.5px; }
+.bar-badge {
+  border-radius: 4px;
+  font-size: 8px;
+  padding: 1px 5px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.3);
+  letter-spacing: .2px;
+}
+.bar-jira {
+  background: rgba(0,0,0,.28);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 7px;
+}
+.bar-jira:hover { background: rgba(0,0,0,.45); }
+.bar-del {
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,.3);
+  font-size: 8px;
+}
+
+/* ── Tooltip ── */
+.tooltip {
+  background: #13162A;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.45);
+  font-size: 12px;
+  line-height: 1.6;
+  max-width: 260px;
+}
+.tooltip strong { font-size: 13px; }
+
+/* ── Edit panel ── */
+.edit-panel {
+  background: #F7F8FD;
+  border-left: 1px solid var(--bdr);
+  box-shadow: -8px 0 32px rgba(0,0,0,.08);
+}
+.ep-hdr {
+  background: linear-gradient(180deg, #161829 0%, #0D0F1A 100%);
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.ep-hdr h3 { font-size: 11px; letter-spacing: .8px; color: rgba(255,255,255,.9); }
+.ep-close { font-size: 18px; line-height: 1; }
+.ep-body { padding: 16px; background: #F7F8FD; }
+.fg {
+  margin-bottom: 14px;
+  background: #fff;
+  border: 1px solid #E4E7F2;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.fg label {
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  color: #8892B0;
+  margin-bottom: 6px;
+}
+.fg input, .fg select, .fg textarea {
+  border: none;
+  border-bottom: 1.5px solid #E4E7F2;
+  border-radius: 0;
+  background: transparent;
+  padding: 4px 0;
+  font-size: 13px;
+  color: var(--txt);
+  width: 100%;
+}
+.fg input:focus, .fg select:focus, .fg textarea:focus {
+  border-bottom-color: var(--acc);
+  outline: none;
+  background: transparent;
+}
+.fg textarea { resize: vertical; min-height: 56px; }
+.ep-footer {
+  padding: 12px 16px;
+  background: #fff;
+  border-top: 1px solid var(--bdr);
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Toast ── */
+.toast {
+  border-radius: 10px !important;
+  font-size: 12px !important;
+  padding: 10px 16px !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25) !important;
+  backdrop-filter: blur(12px);
+  background: rgba(19,22,42,.92) !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+  letter-spacing: .1px;
+}
+
+/* ── Status Update modal ── */
+.ms-modal {
+  border-radius: 14px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.18);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   LIGHT HEADER PASS — off-white timeline + milestone zone
+═══════════════════════════════════════════════════════ */
+:root { --hdr-bg: #F8F9FC; --hdr-bdr: #E2E5F0; }
+
+/* Timeline (month + week labels) */
+.tl-header { background: var(--hdr-bg); border-bottom: 1px solid var(--hdr-bdr); }
+.month-lbl {
+  color: #2A2E45;
+  font-weight: 600;
+  border-right: 1px solid var(--hdr-bdr);
+}
+.week-lbl {
+  color: #9AA2BE;
+  border-right: 1px solid #ECEEF6;
+}
+.week-lbl.tw { color: #16A34A; font-weight: 600; }
+
+/* Left headers to match */
+.lhdr {
+  background: var(--hdr-bg);
+  border-bottom: 1px solid var(--hdr-bdr);
+  border-right: 1px solid var(--hdr-bdr);
+}
+.lhdr span { color: #B0B8D0; font-size: 8px; letter-spacing: 2px; }
+.lhdr-ms {
+  background: #F1F3F9;
+  border-right: 1px solid var(--hdr-bdr);
+}
+.lhdr-ms span { color: #9AA2BE; }
+
+/* Milestone zone */
+.ms-zone {
+  background: #F1F3F9;
+  border-bottom: 2px solid var(--hdr-bdr);
+}
+.ms-row-art, .ms-row-branch { border-bottom: 1px solid rgba(0,0,0,.04); }
+.ms-row-art::before    { color: rgba(217,119,6,.75); }
+.ms-row-branch::before { color: rgba(124,58,237,.75); }
+.ms-row-force::before  { color: rgba(220,38,38,.75); }
+
+/* Guide lines slightly stronger on light bg */
+.guide-art    { border-left: 2px dashed rgba(245,158,11,.65); }
+.guide-branch { border-left: 2px dashed rgba(139,92,246,.65); }
+.guide-force  { border-left: 2px dashed rgba(239,68,68,.65); }
+
+/* Milestone version labels readable on light */
+.ms-pill-ver { color: #4A5170; }
+
+/* TODAY label pill on light header */
+.today-line::before {
+  background: #16A34A;
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: 0 0 4px 4px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- DROP OVERLAY -->
+<div class="drop-overlay" id="dropOverlay">
+  <p>📥 Drop file to import</p>
+  <small style="color:var(--acc);font-family:'IBM Plex Mono',monospace;font-size:12px">Art_Jira_Schedule.xlsx  ·  or Backup CSV from this tool</small>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">ART<span>.</span>ROADMAP</div>
+  <div class="topbar-sep"></div>
+  <div class="controls">
+    <div class="btn-grp">
+      <button class="btn imp" onclick="triggerImport()" title="Import: original Art_Jira_Schedule.xlsx  OR  a Full Backup CSV from this tool">📥 Import</button>
+      <button class="btn" style="color:#34D399;border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.1);font-size:10px;padding:4px 8px" onclick="exportXLSX()" title="Download as real Excel .xlsx file">↓ Excel</button>
+      <button id="connectSheetBtn" class="btn" style="color:rgba(255,255,255,.45);font-size:10px;padding:4px 10px" onclick="showConnectSheetModal()" title="Connect a Google Sheet for auto-sync">🔗 Connect Sheet</button>
+      <span id="lastSyncedLabel" style="display:none;font-size:9px;font-family:'IBM Plex Mono',monospace;color:#5A6280;padding:3px 8px;border:1px solid #1E2235;border-radius:4px;white-space:nowrap"></span>
+    </div>
+    </div>
+    <div class="topbar-sep"></div>
+    <button class="btn" onclick="setSortMode('name')">Sort: A–Z</button>
+    <button class="btn" onclick="setSortMode('workload')">Sort: Busiest</button>
+    <button class="btn" onclick="toggleWorkload()" title="Show/hide team workload summary panel">📊 Team Load</button>
+    <button class="btn" onclick="scrollToToday()" title="Jump to today's date on the timeline">📍 Jump to Today</button>
+    <div class="topbar-sep"></div>
+    <button class="btn" id="undoBtn" onclick="undo()" disabled title="Ctrl+Z">↩ Undo</button>
+    <button class="btn" id="redoBtn" onclick="redo()" disabled title="Ctrl+Y">↪ Redo</button>
+    <div class="topbar-sep"></div>
+    <button class="btn" onclick="toggleCfg()">⚙ Calendar</button>
+    <button class="btn" onclick="showMilestoneEditor()" title="Edit milestone dates (Art Cutoff, Branch Cut, Force Upgrade) or paste from spreadsheet">🗓 Milestones</button>
+    <button class="btn pri" onclick="openAddTask(selectedArtist)">＋ Task</button>
+  </div>
+</div>
+
+<!-- STATUS BAR / LEGEND -->
+<div class="statusbar">
+  <div class="sleg"><div class="sdot" style="background:#52C97B"></div>Done</div>
+  <div class="sleg"><div class="sdot" style="background:#F59E0B"></div>In Progress</div>
+  <div class="sleg"><div class="sdot" style="background:#94A3B8"></div>Not Started</div>
+  <div class="sleg"><div class="sdot" style="background:#FF7043"></div>Awaiting Feedback</div>
+  <div class="sleg"><div class="sdot" style="background:#60A5FA"></div>Art Internal</div>
+  <div class="sleg"><div class="sdot" style="background:#EF5350"></div>On Hold</div>
+  <div class="ssep"></div>
+  <div class="ms-leg" style="color:var(--c-art)">✂ Art Cutoff <span style="display:inline-block;width:10px;border-top:2px dashed var(--c-art);vertical-align:middle;margin-left:3px"></span></div>
+  <div class="ms-leg" style="color:var(--c-branch)">🌿 Branch Cut <span style="display:inline-block;width:10px;border-top:2px dashed var(--c-branch);vertical-align:middle;margin-left:3px"></span></div>
+  <div class="ms-leg" style="color:var(--c-force)">⬆ Force Upgrade <span style="display:inline-block;width:10px;border-top:2px dashed var(--c-force);vertical-align:middle;margin-left:3px"></span></div>
+  <div class="ssep"></div>
+  <div class="sleg"><div class="sdot" style="background:rgba(148,163,184,.4);border:1px dashed rgba(255,255,255,.4)"></div>TBD Start</div>
+  <span class="shortcut-hint">Click to edit · Drag to move/resize/reassign · Ctrl+Z/Y · Drop .xlsx to import</span>
+</div>
+
+<!-- CONFIG PANEL -->
+<div class="cfg-panel" id="cfgPanel">
+  <button class="cfg-close" onclick="toggleCfg()">✕</button>
+  <h3>⚙ Calendar Settings</h3>
+  <div class="cfg-section">Date Range</div>
+  <div class="cfg-row">
+    <label>Start</label>
+    <input type="date" id="cfgStart" value="2026-01-01" onchange="onDateRangeChange()">
+  </div>
+  <div class="cfg-row">
+    <label>End</label>
+    <input type="date" id="cfgEnd" value="2026-07-01" onchange="onDateRangeChange()">
+  </div>
+  <div class="cfg-sep"></div>
+  <div class="cfg-section">Zoom</div>
+  <div class="cfg-row">
+    <label>Day width</label>
+    <input type="range" id="zoomSlider" min="2" max="10" step="0.5" value="4.6" oninput="onZoom(this.value)">
+    <span class="cfg-val" id="zoomVal">4.6 px</span>
+  </div>
+  <div class="cfg-sep"></div>
+  <div class="cfg-section">Session</div>
+  <div class="cfg-row"><label>Autosave</label><span id="cfgSaveStatus" style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--acc)">active</span></div>
+  <div class="cfg-row"><label>Clear saved data</label><button class="btn" style="font-size:10px;padding:3px 8px;color:#EF4444;border-color:#EF4444" onclick="clearSavedState()">Reset</button></div>
+  <div class="cfg-sep"></div>
+  <div class="cfg-section">Milestone Overlays</div>
+  <div class="cfg-row"><label>Show Art Cutoff</label><input type="checkbox" id="showArt" checked onchange="render();scheduleSave()"></div>
+  <div class="cfg-row"><label>Show Branch Cut</label><input type="checkbox" id="showBranch" checked onchange="render();scheduleSave()"></div>
+  <div class="cfg-row"><label>Show Force Upgrade</label><input type="checkbox" id="showForce" checked onchange="render();scheduleSave()"></div>
+  <div class="cfg-row"><label>Vertical guide lines</label><input type="checkbox" id="showGuides" checked onchange="render();scheduleSave()"></div>
+</div>
+
+<!-- WORKLOAD -->
+<div class="wl-panel" id="wlPanel">
+  <h3>Team Workload Summary</h3>
+  <div class="wl-grid" id="wlGrid"></div>
+</div>
+
+<!-- MAIN GANTT -->
+<div class="main">
+  <div class="gantt-scroll" id="ganttScroll">
+    <div class="gantt-inner" id="ganttInner">
+      <div class="left" id="leftPanel">
+        <div class="lhdr" id="lhdrMain"><span>Artist</span></div>
+        <div class="lhdr-ms" id="lhdrMs"></div>
+        <div class="artist-rows" id="artistRows"></div>
+        <div class="add-artist-row" onclick="addArtist()"><span style="font-size:14px">+</span>Add Artist</div>
+      </div>
+      <div class="right" id="rightPanel">
+        <div class="tl-header" id="tlHeader"></div>
+        <!-- Milestone zone: 4 rows -->
+        <div class="ms-zone" id="msZone">
+          <div class="ms-row-art" id="msRowArt"><div class="ms-track" id="msTrackArt"></div></div>
+          <div class="ms-row-branch" id="msRowBranch"><div class="ms-track" id="msTrackBranch"></div></div>
+          <div class="ms-row-force" id="msRowForce"><div class="ms-track" id="msTrackForce"></div></div>
+        </div>
+        <div class="grid-area" id="gridArea">
+          <div class="today-line" id="todayLine"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PANEL -->
+<div class="edit-panel" id="editPanel">
+  <div class="ep-hdr"><h3 id="epTitle">EDIT TASK</h3><button class="ep-close" onclick="closeEdit()">✕</button></div>
+  <div class="ep-body">
+    <div class="fg"><label>Title</label><input type="text" id="epName" placeholder="Task title..."></div>
+    <div class="fg"><label>Artist</label><select id="epArtist"></select></div>
+    <div class="two-col">
+      <div class="fg"><label>Priority</label>
+        <select id="epPri">
+          <option value="P0">P0 — Critical</option>
+          <option value="P1">P1 — High</option>
+          <option value="P2">P2 — Medium</option>
+          <option value="P3">P3 — Low</option>
+        </select>
+      </div>
+      <div class="fg"><label>Status</label>
+        <select id="epStatus">
+          <option value="PROGRESS">In Progress</option>
+          <option value="NOT_STARTED">Not Started</option>
+          <option value="DONE">Done</option>
+          <option value="FEEDBACK">Awaiting Feedback</option>
+          <option value="TPCI">TPCi Review</option>
+          <option value="CANCELLED">Cancelled</option>
+          <option value="V1DONE">V1 Done, V2 To Do</option>
+          <option value="ALIGNMENT">Need Alignment</option>
+          <option value="INTERNAL">Art Internal</option>
+          <option value="HOLD">On Hold</option>
+        </select>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="fg"><label>Start Date <span style="color:var(--acc)">(set to schedule)</span></label><input type="date" id="epStart"></div>
+      <div class="fg"><label>Due / End Date</label><input type="date" id="epEnd"></div>
+    </div>
+    <div class="ep-div"></div>
+    <div class="fg">
+      <label>Jira Ticket</label>
+      <input type="text" id="epJira" placeholder="HOL-XXXXX or ART-XXX" oninput="updateJiraPrev()">
+      <div class="jira-prev" id="jiraPrev"><a id="jiraPrevLink" href="#" target="_blank"></a></div>
+    </div>
+    <div class="fg"><label>Pod / Category</label><input type="text" id="epPod"></div>
+    <div class="fg"><label>Notes</label><textarea id="epNotes"></textarea></div>
+  </div>
+  <div class="ep-foot">
+    <button class="btn" style="background:#EF4444;border-color:#EF4444;color:#fff" onclick="deleteEditTask()">🗑 Delete</button>
+    <button class="btn pri" onclick="saveEditTask()">✓ Save</button>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+<div class="undo-toast" id="undoToast"></div>
+<div class="save-indicator" id="saveIndicator">⬤ autosaved</div>
+<input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileInput(event)">
+
+<script>
+const JIRA_BASE = 'https://niantic.atlassian.net/browse/';
+let RANGE_START = new Date('2026-01-01');
+let RANGE_END   = new Date('2026-07-01');
+const TODAY     = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })();
+let DAY_W       = 4.6;
+let PTO         = {}; // { artistName: [{s,e,label}] }
+const BAR_SLOT=36, BAR_H=24, RPAD=10;
+
+// ── STATUS / PRIORITY ──────────────────────────────────────────────
+const ST = {
+  DONE:        {label:'Done',              color:'#52C97B', dark:'#3da862'},
+  PROGRESS:    {label:'In Progress',       color:'#F59E0B', dark:'#d97706'},
+  NOT_STARTED: {label:'Not Started',       color:'#94A3B8', dark:'#6b7fa0'},
+  FEEDBACK:    {label:'Awaiting Feedback', color:'#FF7043', dark:'#d45a35'},
+  TPCI:        {label:'TPCi Review',       color:'#A855F7', dark:'#9333ea'},
+  INTERNAL:    {label:'Art Internal',      color:'#60A5FA', dark:'#3b82f6'},
+  HOLD:        {label:'On Hold',           color:'#EF4444', dark:'#c53030'},
+  CANCELLED:   {label:'Cancelled',         color:'#6B7280', dark:'#4b5563'},
+  V1DONE:      {label:'V1 Done, V2 To Do', color:'#10B981', dark:'#059669'},
+  ALIGNMENT:   {label:'Need Alignment',    color:'#EC4899', dark:'#db2777'},
+};
+const PC={P0:'#EF4444',P1:'#F97316',P2:'#EAB308',P3:'#94A3B8',P4:'#94A3B8'};
+const AVC={Amanda:'#2563EB',Annabelle:'#7C3AED',Andrew:'#D97706',Arnel:'#059669',
+           Aubrey:'#9D174D',Elaine:'#0891B2',Saro:'#0D9488',Jason:'#1D4ED8',
+           Joe:'#1E40AF',Kaan:'#065F46',Max:'#7F1D1D',Ting:'#831843',Mako:'#4C1D95'};
+function avc(n){return AVC[n]||('#'+[...n].reduce((a,c)=>a+c.charCodeAt(0),0).toString(16).padStart(6,'5'))}
+function ini(n){return n.split(/[\s&]+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()}
+
+// ── MILESTONES (Client releases only, 3 types) ─────────────────────
+// From the release schedule spreadsheet image
+let MILESTONES = [
+  {ver:'0.409', art:'2026-03-27', branch:'2026-04-10', force:'2026-04-29'},
+  {ver:'0.411', art:'2026-04-10', branch:'2026-04-24', force:'2026-05-13'},
+  {ver:'0.413', art:'2026-04-24', branch:'2026-05-08', force:'2026-05-28'},
+  {ver:'0.415', art:'2026-05-08', branch:'2026-05-22', force:'2026-06-10'},
+  {ver:'0.417', art:'2026-05-21', branch:'2026-06-05', force:'2026-06-25'},
+  {ver:'0.419', art:'2026-06-05', branch:'2026-06-19', force:'2026-07-09'},
+];
+
+// ── DEFAULT TASK DATA (from Excel parse) ───────────────────────────
+let tasks = [
+  {id:1,  a:'Amanda',    t:'Spring Marathon Sneakers',        s:'2026-02-03',e:'2026-03-17',st:'PROGRESS',    p:'P0',j:'HOL-106490',pod:'Avatar/Seasonal',n:''},
+  {id:2,  a:'Amanda',    t:'Blanche Hairstyle',               s:'',          e:'2026-04-03',st:'NOT_STARTED', p:'P0',j:'ART-195',   pod:'Live Ops/Seasonal',n:''},
+  {id:3,  a:'Amanda',    t:'Pokemon Polish',                  s:'2026-01-01',e:'2026-06-30',st:'PROGRESS',    p:'P0',j:'',          pod:'Pokemon Polish',n:'Ongoing'},
+  {id:4,  a:'Amanda',    t:'Practice Loading Screen',         s:'2026-01-15',e:'2026-06-30',st:'INTERNAL',    p:'P4',j:'HOL-41014', pod:'Art/Seasonal',n:''},
+  {id:5,  a:'Annabelle', t:'Zeraora — Plasma Fists',          s:'2026-02-15',e:'2026-03-27',st:'PROGRESS',    p:'P0',j:'HOL-107692',pod:'Live Ops/Go Fest',n:''},
+  {id:6,  a:'Annabelle', t:'CA: Glaive Rush FX',              s:'2026-02-20',e:'2026-03-20',st:'PROGRESS',    p:'P0',j:'ART-357',   pod:'Live Ops/Seasonal',n:'or 4/8/20'},
+  {id:7,  a:'Annabelle', t:'CA: Snipe Shot FX',               s:'2026-03-20',e:'2026-04-22',st:'PROGRESS',    p:'P0',j:'ART-360',   pod:'Live Ops/Seasonal',n:''},
+  {id:8,  a:'Annabelle', t:'Reverse Max Strike (Normal)',     s:'',          e:'2026-06-30',st:'NOT_STARTED', p:'P2',j:'HOL-108222',pod:'Features/D-GMax',n:''},
+  {id:9,  a:'Andrew',    t:'Updating PGO Icons (Michelin)',   s:'2026-01-01',e:'2026-01-30',st:'PROGRESS',    p:'P0',j:'HOL-107426',pod:'Features/Michelin',n:'Justin/Chad'},
+  {id:10, a:'Andrew',    t:'Festival of Colors Special BG',   s:'2026-01-15',e:'2026-03-15',st:'PROGRESS',    p:'P0',j:'HOL-108008',pod:'Live Ops/Regional',n:''},
+  {id:11, a:'Andrew',    t:'Branching Quest Icons (GO Fest)', s:'2026-03-27',e:'2026-05-01',st:'NOT_STARTED', p:'P0',j:'HOL-107538',pod:'Live Ops/Go Fest',n:''},
+  {id:12, a:'Andrew',    t:'Z-A Megas Energy Backfill',       s:'2026-01-30',e:'2026-03-02',st:'PROGRESS',    p:'P1',j:'HOL-108536',pod:'Live Ops/Seasonal',n:'Kayla/Eric'},
+  {id:13, a:'Arnel',     t:'Spark Hairstyle',                 s:'2026-02-15',e:'2026-04-03',st:'PROGRESS',    p:'P0',j:'ART-196',   pod:'Live Ops/Seasonal',n:''},
+  {id:14, a:'Arnel',     t:'Candela Hairstyle',               s:'2026-02-15',e:'2026-04-03',st:'PROGRESS',    p:'P0',j:'ART-197',   pod:'Live Ops/Seasonal',n:''},
+  {id:15, a:'Arnel',     t:'Bento Mastery Lab Coats',         s:'2026-02-01',e:'2026-03-15',st:'HOLD',        p:'P0',j:'HOL-92558', pod:'Features/Bento',n:'On Hold'},
+  {id:16, a:'Arnel',     t:'Neutral Avatar Documentation',    s:'2026-03-01',e:'2026-05-30',st:'PROGRESS',    p:'P0',j:'',          pod:'Seasonal/Avatar',n:'Teryn'},
+  {id:17, a:'Aubrey',    t:'GO Fest Today View Banner',       s:'2026-02-10',e:'2026-03-27',st:'PROGRESS',    p:'P0',j:'HOL-107799',pod:'Live Ops/Go Fest',n:''},
+  {id:18, a:'Aubrey',    t:'MewTwo Activation Animation',     s:'',          e:'2026-05-15',st:'NOT_STARTED', p:'P1',j:'ART-933',   pod:'Live Ops/Go Fest',n:''},
+  {id:19, a:'Aubrey',    t:'MewTwo Map View Ring VFX',        s:'',          e:'2026-05-15',st:'NOT_STARTED', p:'P1',j:'ART-937',   pod:'Live Ops/Go Fest',n:''},
+  {id:20, a:'Aubrey',    t:'MewTwo Header Art',               s:'',          e:'2026-05-10',st:'NOT_STARTED', p:'P1',j:'ART-931',   pod:'Live Ops/Go Fest',n:''},
+  {id:21, a:'Aubrey',    t:'Pokemon Polish',                  s:'2026-01-01',e:'2026-06-30',st:'PROGRESS',    p:'P0',j:'',          pod:'Pokemon Polish',n:''},
+  {id:22, a:'Elaine',    t:'GO Fest — Gaertner Ground Zones', s:'2026-02-10',e:'2026-03-27',st:'NOT_STARTED', p:'P0',j:'HOL-107535',pod:'Live Ops/Go Fest',n:''},
+  {id:23, a:'Elaine',    t:'GO Fest — Confetti',              s:'2026-02-10',e:'2026-03-27',st:'PROGRESS',    p:'P0',j:'HOL-107537',pod:'Live Ops/Go Fest',n:''},
+  {id:24, a:'Elaine',    t:'GO Fest — Badges',                s:'2026-02-20',e:'2026-03-27',st:'NOT_STARTED', p:'P0',j:'HOL-107595',pod:'Live Ops/Go Fest',n:''},
+  {id:25, a:'Elaine',    t:'AutoCatcher Foreground Art',      s:'2026-03-27',e:'2026-05-27',st:'FEEDBACK',    p:'P1',j:'HOL-107843',pod:'Features/AutoCatcher',n:'can be right after launch'},
+  {id:26, a:'Elaine',    t:'MewTwo Map View Icons',           s:'',          e:'2026-06-30',st:'NOT_STARTED', p:'P1',j:'ART-935',   pod:'Live Ops/Go Fest',n:''},
+  {id:27, a:'Jason',     t:'GO Fest SBs — Mewtwo',           s:'2026-02-01',e:'2026-03-27',st:'FEEDBACK',    p:'P0',j:'HOL-107674',pod:'Live Ops/Go Fest',n:''},
+  {id:28, a:'Jason',     t:'GO Fest SBs — Anniversary Raids', s:'',          e:'2026-06-30',st:'NOT_STARTED', p:'P0',j:'ART-1023',  pod:'Live Ops/Go Fest',n:'Hold for Go Fest SB?'},
+  {id:29, a:'Jason',     t:'S23 Summer Loading Screen',       s:'2026-02-01',e:'2026-03-25',st:'FEEDBACK',    p:'P0',j:'HOL-106775',pod:'Live Ops/Seasonal',n:'confirm schedule'},
+  {id:30, a:'Joe',       t:'GO Fest Location Backgrounds',    s:'2026-02-15',e:'2026-03-27',st:'PROGRESS',    p:'P0',j:'HOL-107768',pod:'Live Ops/Go Fest',n:''},
+  {id:31, a:'Joe',       t:'NPB: Yakult Swallows',            s:'2026-01-15',e:'2026-03-01',st:'FEEDBACK',    p:'P0',j:'ART-713',   pod:'Live Ops/Regional NPB',n:''},
+  {id:32, a:'Joe',       t:'NPB: Rakuten Eagles',             s:'2026-01-15',e:'2026-03-13',st:'PROGRESS',    p:'P0',j:'ART-701',   pod:'Live Ops/Regional NPB',n:''},
+  {id:33, a:'Joe',       t:'NPB: Koshien (Hanshin)',          s:'2026-02-01',e:'2026-03-13',st:'FEEDBACK',    p:'P1',j:'ART-807',   pod:'Live Ops/Regional NPB',n:''},
+  {id:34, a:'Joe',       t:'NPB: Matsuda Stadium',            s:'2026-02-01',e:'2026-03-20',st:'PROGRESS',    p:'P1',j:'ART-812',   pod:'Live Ops/Regional NPB',n:''},
+  {id:35, a:'Joe',       t:'NPB: PayPay Dome',                s:'2026-02-01',e:'2026-03-20',st:'FEEDBACK',    p:'P1',j:'ART-817',   pod:'Live Ops/Regional NPB',n:''},
+  {id:36, a:'Joe',       t:'NPB: Belluna Dome',               s:'2026-03-01',e:'2026-03-27',st:'NOT_STARTED', p:'P1',j:'ART-822',   pod:'Live Ops/Regional NPB',n:''},
+  {id:37, a:'Joe',       t:'NPB: Kyocera Dome',               s:'2026-03-01',e:'2026-03-27',st:'NOT_STARTED', p:'P1',j:'ART-830',   pod:'Live Ops/Regional NPB',n:''},
+  {id:38, a:'Joe',       t:'NPB: Zozo Marine',                s:'2026-03-15',e:'2026-04-03',st:'NOT_STARTED', p:'P1',j:'ART-835',   pod:'Live Ops/Regional NPB',n:''},
+  {id:39, a:'Joe',       t:'NPB: Yokohama Stadium',           s:'2026-03-15',e:'2026-04-10',st:'NOT_STARTED', p:'P1',j:'ART-842',   pod:'Live Ops/Regional NPB',n:''},
+  {id:40, a:'Joe',       t:'NPB: Toyama Kyujyo (Allstars)',   s:'',          e:'2026-05-08',st:'NOT_STARTED', p:'P1',j:'ART-847',   pod:'Live Ops/Regional NPB',n:''},
+  {id:41, a:'Joe',       t:'NPB: Es Con Field',               s:'',          e:'2026-05-22',st:'NOT_STARTED', p:'P1',j:'ART-852',   pod:'Live Ops/Regional NPB',n:''},
+  {id:42, a:'Joe',       t:'NPB: Vantelin Dome',              s:'',          e:'2026-05-22',st:'NOT_STARTED', p:'P1',j:'ART-857',   pod:'Live Ops/Regional NPB',n:''},
+  {id:43, a:'Joe',       t:'Pokemon Polish',                  s:'2026-01-01',e:'2026-06-30',st:'PROGRESS',    p:'P0',j:'',          pod:'Pokemon Polish',n:''},
+  {id:44, a:'Kaan',      t:'GO Fest Team Leader Pose',        s:'2026-01-20',e:'2026-02-17',st:'PROGRESS',    p:'P0',j:'HOL-107061',pod:'Live Ops/Go Fest',n:''},
+  {id:45, a:'Kaan',      t:'Acorn Pose',                      s:'2026-02-17',e:'2026-03-10',st:'PROGRESS',    p:'P0',j:'HOL-107067',pod:'Live Ops/Go Fest',n:''},
+  {id:46, a:'Kaan',      t:'S23 GBL Cynthia Pose',            s:'2026-03-01',e:'2026-04-01',st:'NOT_STARTED', p:'P0',j:'ART-194',   pod:'Live Ops/Seasonal',n:''},
+  {id:47, a:'Mako',      t:'Adventure Sync Reminder Card',    s:'',          e:'2026-06-30',st:'NOT_STARTED', p:'P1',j:'ART-792',   pod:'Features',n:''},
+  {id:48, a:'Max',       t:'R&D on Buddied BGs',              s:'2026-02-01',e:'2026-04-30',st:'PROGRESS',    p:'P0',j:'',          pod:'R&D',n:''},
+  {id:49, a:'Max',       t:'Optimization Needs on Moves',     s:'2026-02-01',e:'2026-04-30',st:'PROGRESS',    p:'P0',j:'',          pod:'R&D',n:''},
+  {id:50, a:'Ting',      t:'Zeraora Encounter Animation',     s:'2026-03-01',e:'2026-04-10',st:'PROGRESS',    p:'P0',j:'HOL-107691',pod:'Live Ops/Go Fest',n:''},
+];
+
+let artists=['Amanda','Annabelle','Andrew','Arnel','Aubrey','Elaine','Jason','Joe','Kaan','Mako','Max','Ting'];
+let sortMode='default';
+let editId=null;
+let selectedArtist=null; // last clicked artist row
+let dragMoved=false;
+let dragTarget=null;
+
+// ── UNDO/REDO ─────────────────────────────────────────────────────
+let hist=[],histIdx=-1;
+function saveHist(label=''){
+  hist=hist.slice(0,histIdx+1);
+  hist.push({tasks:JSON.parse(JSON.stringify(tasks)),artists:[...artists],label});
+  if(hist.length>60) hist.shift();
+  histIdx=hist.length-1;
+  updateUndoBtn();
+}
+function undo(){
+  if(histIdx<=0) return;
+  histIdx--;
+  const s=hist[histIdx];
+  tasks=JSON.parse(JSON.stringify(s.tasks));
+  artists=[...s.artists];
+  render(); showToast('↩ Undo: '+(hist[histIdx+1]?.label||'action'));
+  updateUndoBtn();
+}
+function redo(){
+  if(histIdx>=hist.length-1) return;
+  histIdx++;
+  const s=hist[histIdx];
+  tasks=JSON.parse(JSON.stringify(s.tasks));
+  artists=[...s.artists];
+  render(); showToast('↪ Redo: '+(s.label||'action'));
+  updateUndoBtn();
+}
+function updateUndoBtn(){
+  document.getElementById('undoBtn').disabled=histIdx<=0;
+  document.getElementById('redoBtn').disabled=histIdx>=hist.length-1;
+}
+let toastT;
+function showToast(msg){
+  const el=document.getElementById('undoToast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),1900);
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────
+function totalDays(){return Math.ceil((RANGE_END-RANGE_START)/86400000)}
+function parseLocalDate(d){const[y,mo,day]=String(d).slice(0,10).split('-').map(Number);return new Date(y,mo-1,day)}
+function dayOf(d){return Math.round((parseLocalDate(d)-RANGE_START)/86400000)}
+function pxL(d){return dayOf(d)*DAY_W}
+function pxW(s,e){return Math.max((Math.round((parseLocalDate(e)-parseLocalDate(s))/86400000)+1)*DAY_W,DAY_W)}
+function px2d(px){const d=new Date(RANGE_START.getTime()+Math.round(px/DAY_W)*86400000);return d.toISOString().slice(0,10)}
+function fmt(d){const dt=new Date(d);return`${dt.getMonth()+1}/${dt.getDate()}/${String(dt.getFullYear()).slice(-2)}`}
+function rowH(n){
+  const taskH=Math.max(1,tasks.filter(t=>t.a===n).length)*BAR_SLOT+RPAD*2;
+  const ptoPad=(PTO[n]&&PTO[n].length)?30:0; // extra height for PTO badge
+  return taskH+ptoPad;
+}
+function rowTop(i){let t=0;for(let k=0;k<i;k++)t+=rowH(artists[k]);return t}
+function artAtY(y){let c=0;for(let i=0;i<artists.length;i++){c+=rowH(artists[i]);if(y<c)return i;}return artists.length-1}
+function totalH(){return artists.reduce((a,n)=>a+rowH(n),0)}
+function addDays(d,n){const dt=parseLocalDate(d);dt.setDate(dt.getDate()+n);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')}
+function atasks(n){return tasks.filter(t=>t.a===n)}
+function tw(){return totalDays()*DAY_W}
+function isTBD(task){return !task.s||task.s===''}
+
+// ── SORT ─────────────────────────────────────────────────────────
+function setSortMode(m){
+  if(m==='name') artists.sort((a,b)=>a.localeCompare(b));
+  if(m==='workload') artists.sort((a,b)=>atasks(b).length-atasks(a).length);
+  render();
+}
+
+// ── RENDER ───────────────────────────────────────────────────────
+function render(){
+  const W=tw();
+  renderTimeline(W); renderArtistRows(); renderGridRows(W);
+  renderMilestones(W); renderBars(); renderTodayLine(); renderWorkload();
+  syncHeights();
+}
+
+function syncHeights(){
+  const tlH=document.getElementById('tlHeader').offsetHeight;
+  const msH=document.getElementById('msZone').offsetHeight;
+  document.getElementById('lhdrMain').style.height=tlH+'px';
+  document.getElementById('lhdrMs').style.height=msH+'px';
+}
+
+function renderTimeline(W){
+  const hdr=document.getElementById('tlHeader');
+  hdr.innerHTML=''; hdr.style.width=W+'px';
+  // Month row
+  const mr=document.createElement('div'); mr.className='month-row';
+  let d=new Date(RANGE_START);
+  while(d<RANGE_END){
+    const next=new Date(d.getFullYear(),d.getMonth()+1,1);
+    const end=next<RANGE_END?next:RANGE_END;
+    const days=Math.ceil((end-d)/86400000);
+    const el=document.createElement('div'); el.className='month-lbl';
+    el.style.width=el.style.minWidth=days*DAY_W+'px';
+    el.textContent=d.toLocaleString('en',{month:'short',year:'2-digit'});
+    mr.appendChild(el);
+    d=next;
+  }
+  hdr.appendChild(mr);
+  // Week row
+  const wr=document.createElement('div'); wr.className='week-row';
+  let wd=new Date(RANGE_START);
+  // Align to first Monday
+  while(wd.getDay()!==1) wd.setDate(wd.getDate()+1);
+  while(wd<RANGE_END){
+    const el=document.createElement('div'); el.className='week-lbl';
+    const isTW=wd<=TODAY&&new Date(wd.getTime()+7*86400000)>TODAY;
+    if(isTW) el.classList.add('tw');
+    el.style.width=el.style.minWidth=7*DAY_W+'px';
+    el.textContent=`${wd.getMonth()+1}/${wd.getDate()}`;
+    wr.appendChild(el);
+    wd.setDate(wd.getDate()+7);
+  }
+  hdr.appendChild(wr);
+}
+
+function renderMilestones(W){
+  const showArt=document.getElementById('showArt').checked;
+  const showBranch=document.getElementById('showBranch').checked;
+  const showForce=document.getElementById('showForce').checked;
+  const showGuides=document.getElementById('showGuides').checked;
+  const grid=document.getElementById('gridArea');
+  grid.querySelectorAll('.guide-line').forEach(el=>el.remove());
+
+  ['msTrackArt','msTrackBranch','msTrackForce'].forEach(id=>{
+    const el=document.getElementById(id); el.innerHTML=''; el.style.width=W+'px';
+  });
+
+  // Collect pills per track first so we can assign stagger levels
+  const artPills=[], branchPills=[], forcePills=[];
+  MILESTONES.forEach((ms,vi)=>{
+    if(ms.hidden) return;
+    const artL=pxL(ms.art), branchL=pxL(ms.branch), forceL=pxL(ms.force);
+    if(showArt    && artL>=0    && artL<=W)    artPills.push({left:artL,   ms});
+    if(showBranch && branchL>=0 && branchL<=W) branchPills.push({left:branchL, ms});
+    if(showForce  && forceL>=0  && forceL<=W)  forcePills.push({left:forceL,  ms});
+  });
+
+  // Sort by position then assign stagger levels
+  [artPills, branchPills, forcePills].forEach(pills=>{
+    pills.sort((a,b)=>a.left-b.left);
+  });
+  const artLvls    = assignLevels(artPills);
+  const branchLvls = assignLevels(branchPills);
+  const forceLvls  = assignLevels(forcePills);
+
+  artPills.forEach((p,i)=>{
+    const pill=mkPill(p.left,'var(--c-art)',p.ms.ver,'✂',`✂ Art Cutoff: ${fmt(p.ms.art)}`,artLvls[i]);
+    document.getElementById('msTrackArt').appendChild(pill);
+    if(showGuides) grid.appendChild(mkGuide(p.left,'guide-art'));
+  });
+  branchPills.forEach((p,i)=>{
+    const pill=mkPill(p.left,'var(--c-branch)',p.ms.ver,'🌿',`🌿 Branch Cut: ${fmt(p.ms.branch)}`,branchLvls[i]);
+    document.getElementById('msTrackBranch').appendChild(pill);
+    if(showGuides) grid.appendChild(mkGuide(p.left,'guide-branch'));
+  });
+  forcePills.forEach((p,i)=>{
+    const pill=mkPill(p.left,'var(--c-force)',p.ms.ver,'⬆',`⬆ Force Upgrade: ${fmt(p.ms.force)}`,forceLvls[i]);
+    document.getElementById('msTrackForce').appendChild(pill);
+    if(showGuides) grid.appendChild(mkGuide(p.left,'guide-force'));
+  });
+}
+
+function mkPill(left,color,ver,icon,title,level){
+  const el=document.createElement('div'); el.className='ms-pill';
+  el.style.left=left+'px';
+  // Shorten "0.421 Client" → "0.421 C", "0.421 Server" → "0.421 S"
+  const shortVer = ver.replace(/\bClient\b/i,'C').replace(/\bServer\b/i,'S');
+  // Stagger vertically: level 0=center, 1=above, 2=below, 3=more above
+  const offsets=[0,-14,14,-28];
+  const off=offsets[level||0]||0;
+  el.style.top='calc(50% + '+off+'px)';
+  el.innerHTML=`<div class="ms-pill-dot" style="background:${color}"></div><div class="ms-pill-ver" style="color:${color}">${shortVer}</div>`;
+  el.title=title; return el;
+}
+
+function assignLevels(pills){
+  // pills = [{left, ...}], assign level to avoid label overlap (~40px wide)
+  const MINW=42;
+  const levels=[]; // track rightmost x used per level
+  return pills.map(p=>{
+    let lv=0;
+    for(lv=0;lv<4;lv++){
+      if(levels[lv]===undefined||p.left-levels[lv]>=MINW) break;
+    }
+    levels[lv]=p.left;
+    return lv;
+  });
+}
+function mkGuide(left,cls){
+  const el=document.createElement('div'); el.className=`guide-line ${cls}`;
+  el.style.left=left+'px'; return el;
+}
+
+function renderArtistRows(){
+  const c=document.getElementById('artistRows'); c.innerHTML='';
+  const mx=Math.max(...artists.map(a=>atasks(a).length),1);
+  artists.forEach(name=>{
+    const cnt=atasks(name).length, h=rowH(name);
+    const pct=(cnt/mx*100).toFixed(0);
+    const wlC=cnt>=5?'#EF4444':cnt>=3?'#F59E0B':'#10B981';
+    const row=document.createElement('div'); row.className='artist-row';
+    if(name===selectedArtist) row.classList.add('selected-artist');
+    row.style.height=h+'px'; row.dataset.artist=name;
+    row.innerHTML=`
+      <div class="av" style="background:${avc(name)}">${ini(name)}</div>
+      <div class="a-info">
+        <div class="a-name" ondblclick="renameArtist('${name}')" title="Double-click to rename">${name}</div>
+        <div class="a-meta">${cnt} task${cnt!==1?'s':''}</div>
+        <div class="wl-bg"><div class="wl-f" style="width:${pct}%;background:${wlC}"></div></div>
+        ${ptoBadge(name)}
+      </div>
+      <button class="add-task-btn" onclick="openAddTask('${name}')" title="Add task">+</button>`;
+    row.addEventListener('click', e=>{
+      if(e.target.closest('.add-task-btn,.pto-badge,.a-name')) return;
+      selectedArtist = name;
+      document.querySelectorAll('.artist-row').forEach(r=>r.classList.toggle('selected-artist', r.dataset.artist===name));
+    });
+    c.appendChild(row);
+  });
+}
+
+function renderGridRows(W){
+  const area=document.getElementById('gridArea');
+  area.querySelectorAll('.grid-row,.bar-layer').forEach(el=>el.remove());
+  const DAYS=totalDays();
+  artists.forEach(name=>{
+    const h=rowH(name);
+    const row=document.createElement('div'); row.className='grid-row';
+    row.style.width=W+'px'; row.style.height=h+'px'; row.dataset.artist=name;
+    for(let d2=0;d2<DAYS;d2++){
+      const date=new Date(RANGE_START.getTime()+d2*86400000);
+      const cell=document.createElement('div'); cell.className='day-cell';
+      cell.style.width=DAY_W+'px'; cell.style.height='100%';
+      if(date.getDate()===1) cell.classList.add('ms-col');
+      else if(date.getDay()===1) cell.classList.add('ws');
+      if(date.getDay()===0||date.getDay()===6) cell.classList.add('we');
+      if(date.toISOString().slice(0,10)===TODAY.toISOString().slice(0,10)) cell.classList.add('td-col');
+      row.appendChild(cell);
+    }
+    area.appendChild(row);
+  });
+}
+
+function renderBars(){
+  const area=document.getElementById('gridArea');
+  area.querySelectorAll('.bar-layer,.pto-layer').forEach(el=>el.remove());
+  artists.forEach((name,ri)=>{
+    const at=atasks(name), h=rowH(name);
+    // PTO layer — rendered behind task bars
+    const ptoEntries = PTO[name]||[];
+    if(ptoEntries.length){
+      const ptoLayer=document.createElement('div');
+      ptoLayer.className='pto-layer';
+      ptoLayer.style.cssText=`position:absolute;top:${rowTop(ri)}px;height:${h}px;left:0;right:0;pointer-events:none;z-index:2`;
+      ptoEntries.forEach(p=>{
+        const l=pxL(p.s), w=pxW(p.s,p.e);
+        if(l>tw()+100||l+w<-100) return; // out of range
+        const pb=document.createElement('div'); pb.className='pto-bar';
+        pb.style.cssText=`left:${l}px;width:${Math.max(w,4)}px`;
+        pb.dataset.tip=`🏖 ${name}: ${p.label||'PTO'} (${fmt(p.s)}${p.e!==p.s?'→'+fmt(p.e):''})`;
+        pb.style.pointerEvents='all';
+        ptoLayer.appendChild(pb);
+      });
+      area.appendChild(ptoLayer);
+    }
+    const layer=document.createElement('div'); layer.className='bar-layer';
+    layer.style.top=rowTop(ri)+'px'; layer.style.height=h+'px';
+    at.forEach((task,ti)=>{
+      const tbd=isTBD(task);
+      const st=ST[task.st]||ST.NOT_STARTED;
+      const pc=PC[task.p]||'#94A3B8';
+      // For TBD tasks: show bar from 4 weeks before due date
+      const sDate=tbd?addDays(task.e,-28):task.s;
+      const left=pxL(sDate);
+      const width=pxW(sDate,task.e);
+      const top=RPAD+ti*BAR_SLOT+(BAR_SLOT-BAR_H)/2;
+      const bar=document.createElement('div'); bar.className='task-bar';
+      if(tbd) bar.classList.add('tbd');
+      if(editId===task.id) bar.classList.add('selected');
+      if(!tbd){
+        bar.style.cssText=`left:${left}px;width:${width}px;top:${top}px;height:${BAR_H}px;background:linear-gradient(135deg,${st.color},${st.dark})`;
+      } else {
+        bar.style.cssText=`left:${left}px;width:${width}px;top:${top}px;height:${BAR_H}px;background:${st.color}60;border:2px dashed ${st.color};border-radius:4px`;
+      }
+      bar.dataset.taskId=task.id;
+      const jHtml=task.j?`<a class="bar-jira" href="${JIRA_BASE}${task.j}" target="_blank" onclick="event.stopPropagation()">${task.j}</a>`:'';
+      const tbdLabel=tbd?`<div class="bar-tbd-label">START TBD — due ${fmt(task.e)}</div>`:'';
+      bar.innerHTML=`
+        ${!tbd?`<div class="bar-pri-stripe" style="background:${pc}"></div>`:''}
+        <div class="bar-body">
+          <div class="bar-title">${task.t}</div>
+          <div class="bar-sub">${tbd?`due ${fmt(task.e)}`:`${fmt(task.s)}→${fmt(task.e)}`} ${jHtml}</div>
+        </div>
+        <div class="bar-badge" style="background:${pc}">${task.p}</div>
+        ${tbdLabel}
+        <div class="bar-del" onclick="delTask(${task.id},event)">✕</div>
+        <div class="bar-resize-r" data-resize="r"></div>`;
+      bar.addEventListener('click',e=>{
+        if(!e.target.dataset.resize&&!e.target.classList.contains('bar-del')&&!e.target.classList.contains('bar-jira')&&!dragMoved) selectTask(task.id);
+      });
+      bar.addEventListener('dblclick',e=>{
+        if(!e.target.dataset.resize&&!e.target.classList.contains('bar-del')&&!e.target.classList.contains('bar-jira')) openEdit(task.id);
+      });
+      bar.addEventListener('mouseenter',e=>{hoveredTaskId=task.id;showTip(e,task);});
+      bar.addEventListener('mouseleave',e=>{hoveredTaskId=null;hideTip();});
+      makeDrag(bar,task,tbd);
+      layer.appendChild(bar);
+    });
+    area.appendChild(layer);
+  });
+  // Re-apply selected highlight after re-render
+  if(selectedTaskId != null){
+    document.querySelectorAll('.task-bar').forEach(b=>{
+      b.classList.toggle('selected', parseInt(b.dataset.taskId)===selectedTaskId);
+    });
+  }
+}
+
+function renderTodayLine(){
+  const line=document.getElementById('todayLine');
+  const off=dayOf(TODAY.toISOString().slice(0,10))*DAY_W;
+  line.style.left=off+'px'; line.style.height=totalH()+'px';
+  // Custom tooltip showing full date
+  const opts={weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  const label = TODAY.toLocaleDateString(undefined, opts);
+  line.onmouseenter = e => {
+    let tip = document.getElementById('todayTip');
+    if(!tip){ tip=document.createElement('div'); tip.id='todayTip';
+      tip.style.cssText='position:fixed;background:#16A34A;color:#fff;font-size:11px;font-weight:700;font-family:"IBM Plex Mono",monospace;padding:4px 10px;border-radius:6px;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.4)';
+      document.body.appendChild(tip); }
+    tip.textContent = label;
+    tip.style.display='block';
+    tip.style.left=(e.clientX+12)+'px';
+    tip.style.top=(e.clientY-28)+'px';
+  };
+  line.onmousemove = e => {
+    const tip=document.getElementById('todayTip');
+    if(tip){ tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY-28)+'px'; }
+  };
+  line.onmouseleave = () => {
+    const tip=document.getElementById('todayTip');
+    if(tip) tip.style.display='none';
+  };
+}
+
+function renderWorkload(){
+  const g=document.getElementById('wlGrid'); g.innerHTML='';
+  const mx=Math.max(...artists.map(a=>atasks(a).length),1);
+  [...artists].sort((a,b)=>atasks(b).length-atasks(a).length).forEach(name=>{
+    const cnt=atasks(name).length, pct=(cnt/mx*100).toFixed(0);
+    const wlC=cnt>=5?'#EF4444':cnt>=3?'#F59E0B':'#10B981';
+    const level=cnt>=5?'🔴 Heavy':cnt>=3?'🟡 Medium':'🟢 Light';
+    const sm={};tasks.filter(t=>t.a===name).forEach(t=>{sm[t.st]=(sm[t.st]||0)+1});
+    const str=Object.entries(sm).map(([k,v])=>`${v} ${ST[k]?.label||k}`).join(', ');
+    const card=document.createElement('div'); card.className='wl-card';
+    card.innerHTML=`<div style="display:flex;align-items:center;gap:6px">
+      <div class="av" style="background:${avc(name)};width:22px;height:22px;font-size:8px">${ini(name)}</div>
+      <div><div class="wn">${name}</div><div class="wt">${level} · ${cnt} tasks</div></div></div>
+      <div class="wl-bg2"><div class="wl-bf" style="width:${pct}%;background:${wlC}"></div></div>
+      <div style="font-size:9px;color:var(--muted);margin-top:4px;font-family:'IBM Plex Mono',monospace">${str}</div>`;
+    g.appendChild(card);
+  });
+}
+
+// ── DRAG ────────────────────────────────────────────────────────
+function makeDrag(bar,task,tbd){
+  let isDrag=false,isRes=false,sx=0,sy=0,ol=0,ow=0;
+  bar.addEventListener('mousedown',e=>{
+    if(e.target.classList.contains('bar-jira')) return;
+    if(e.target.dataset.resize){isRes=true;}
+    else if(e.target.classList.contains('bar-del')) return;
+    else{isDrag=true;}
+    sx=e.clientX; sy=e.clientY;
+    ol=parseFloat(bar.style.left); ow=parseFloat(bar.style.width);
+    bar.classList.add('dragging'); dragMoved=false;
+    e.preventDefault(); e.stopPropagation();
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!isDrag&&!isRes) return;
+    const dx=e.clientX-sx;
+    if(Math.abs(dx)>3||Math.abs(e.clientY-sy)>3) dragMoved=true;
+    if(isDrag){
+      bar.style.left=Math.max(0,ol+dx)+'px';
+      const newS=px2d(Math.max(0,ol+dx));
+      if(tbd){ task.e=addDays(newS,28); }
+      else{ task.s=newS; task.e=addDays(newS,Math.round(ow/DAY_W)); }
+      bar.querySelector('.bar-sub').childNodes[0].textContent=tbd?`due ${fmt(task.e)}`:`${fmt(task.s)}→${fmt(task.e)} `;
+      const area=document.getElementById('gridArea');
+      const relY=e.clientY-area.getBoundingClientRect().top;
+      dragTarget=artists[artAtY(relY)];
+      document.querySelectorAll('.grid-row,.artist-row').forEach(r=>{
+        r.classList.toggle('drop-target',r.dataset.artist===dragTarget&&dragTarget!==task.a);
+      });
+    } else if(isRes){
+      const nw=Math.max(DAY_W*2,ow+dx);
+      bar.style.width=nw+'px';
+      task.e=addDays(tbd?addDays(task.e,-28):task.s,Math.round(nw/DAY_W));
+      bar.querySelector('.bar-sub').childNodes[0].textContent=tbd?`due ${fmt(task.e)}`:`${fmt(task.s)}→${fmt(task.e)} `;
+    }
+  });
+  document.addEventListener('mouseup',()=>{
+    if(!isDrag&&!isRes) return;
+    bar.classList.remove('dragging');
+    document.querySelectorAll('.grid-row,.artist-row').forEach(r=>r.classList.remove('drop-target'));
+    if(isDrag&&dragTarget&&dragTarget!==task.a){
+      saveHist(`Move ${task.t} → ${dragTarget}`);
+      task.a=dragTarget; if(!artists.includes(task.a)) artists.push(task.a);
+      render();
+    } else if(isDrag||isRes){ saveHist(`Reschedule: ${task.t}`); }
+    isDrag=false; isRes=false; dragTarget=null;
+    setTimeout(()=>{ dragMoved=false; },50);
+  });
+}
+
+// ── EDIT PANEL ──────────────────────────────────────────────────
+let selectedTaskId = null;
+let hoveredTaskId = null;
+
+function selectTask(taskId){
+  selectedTaskId = taskId;
+  document.querySelectorAll('.task-bar').forEach(b=>{
+    b.classList.toggle('selected', parseInt(b.dataset.taskId)===taskId);
+  });
+}
+
+function applyStatusShortcut(stKey){
+  // Detect hovered bar at keypress time (most reliable - no timing issues)
+  let activeId = null;
+  const hoveredBar = document.querySelector('.task-bar:hover');
+  if(hoveredBar) activeId = parseInt(hoveredBar.dataset.taskId);
+  if(!activeId) activeId = hoveredTaskId != null ? hoveredTaskId : selectedTaskId;
+  if(activeId == null){ showToast('Hover over a task and press the key'); return; }
+  const task = tasks.find(t=>t.id===activeId);
+  if(!task) return;
+  saveHist('Status shortcut');
+  task.st = stKey;
+  scheduleSave(); renderBars();
+  // Flash confirmation on bar
+  const bar = document.querySelector('.task-bar.selected');
+  if(bar){ bar.style.outline='3px solid #fff'; setTimeout(()=>{ bar.style.outline=''; },600); }
+  // If edit panel is open for this task, update its dropdown too
+  if(document.getElementById('editPanel').classList.contains('open') && editId===activeId){
+    document.getElementById('epStatus').value = stKey;
+  }
+  showToast('Status: ' + (ST[stKey]&&ST[stKey].label||stKey));
+}
+
+
+function openEdit(taskId){
+  const task=tasks.find(t=>t.id===taskId); if(!task) return;
+  editId=taskId;
+  document.getElementById('epTitle').textContent='EDIT TASK';
+  document.getElementById('epName').value=task.t;
+  document.getElementById('epStart').value=task.s||'';
+  document.getElementById('epEnd').value=task.e||'';
+  document.getElementById('epJira').value=task.j||'';
+  document.getElementById('epPod').value=task.pod||'';
+  document.getElementById('epNotes').value=task.n||'';
+  const sel=document.getElementById('epArtist'); sel.innerHTML='';
+  artists.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;if(a===task.a)o.selected=true;sel.appendChild(o);});
+  document.getElementById('epStatus').value=task.st;
+  document.getElementById('epPri').value=task.p||'P1';
+  updateJiraPrev();
+  document.getElementById('editPanel').classList.add('open');
+  selectedTaskId = taskId;
+  document.querySelectorAll('.task-bar').forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.taskId)===taskId));
+}
+function openAddTask(artistName){
+  editId=null;
+  document.getElementById('epTitle').textContent='NEW TASK';
+  ['epName','epJira','epPod','epNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('epStart').value='';
+  document.getElementById('epEnd').value=addDays(TODAY.toISOString().slice(0,10),21);
+  const sel=document.getElementById('epArtist'); sel.innerHTML='';
+  artists.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;if(a===artistName)o.selected=true;sel.appendChild(o);});
+  document.getElementById('epStatus').value='NOT_STARTED';
+  document.getElementById('epPri').value='P1';
+  updateJiraPrev();
+  document.getElementById('editPanel').classList.add('open');
+}
+function updateJiraPrev(){
+  const v=document.getElementById('epJira').value.trim();
+  const prev=document.getElementById('jiraPrev'), link=document.getElementById('jiraPrevLink');
+  if(v){prev.style.display='block';link.href=JIRA_BASE+v;link.textContent=JIRA_BASE+v;}
+  else{prev.style.display='none';}
+}
+function saveEditTask(){
+  const name=document.getElementById('epName').value.trim();
+  if(!name){alert('Task title required.');return;}
+  const data={t:name,a:document.getElementById('epArtist').value,p:document.getElementById('epPri').value,
+    st:document.getElementById('epStatus').value,s:document.getElementById('epStart').value,
+    e:document.getElementById('epEnd').value,j:document.getElementById('epJira').value.trim(),
+    pod:document.getElementById('epPod').value.trim(),n:document.getElementById('epNotes').value.trim()};
+  saveHist(editId?`Edit: ${name}`:`Add: ${name}`);
+  if(editId){const t=tasks.find(t=>t.id===editId);if(t)Object.assign(t,data);}
+  else{tasks.push({id:Date.now(),...data});}
+  if(!artists.includes(data.a)) artists.push(data.a);
+  closeEdit(); render();
+}
+function deleteEditTask(){
+  if(!editId) return;
+  const t=tasks.find(t=>t.id===editId);
+  if(!confirm(`Delete "${t?.t}"?`)) return;
+  saveHist(`Delete: ${t?.t}`);
+  tasks=tasks.filter(t=>t.id!==editId);
+  artists=artists.filter(a=>tasks.some(t=>t.a===a));
+  closeEdit(); render();
+}
+function delTask(id,e){
+  e.stopPropagation();
+  const t=tasks.find(t=>t.id===id);
+  saveHist(`Delete: ${t?.t}`);
+  tasks=tasks.filter(t=>t.id!==id);
+  artists=artists.filter(a=>tasks.some(t=>t.a===a));
+  if(editId===id) closeEdit();
+  render();
+}
+function closeEdit(){
+  editId=null;
+  document.getElementById('editPanel').classList.remove('open');
+  document.querySelectorAll('.task-bar').forEach(b=>b.classList.remove('selected'));
+}
+
+// ── ARTIST MANAGEMENT ───────────────────────────────────────────
+function renameArtist(oldName){
+  showInlinePrompt('Rename artist:', oldName, (n)=>{
+    n = n.trim();
+    if(!n || n===oldName) return;
+    saveHist('Rename: '+oldName+'→'+n);
+    tasks.forEach(t=>{ if(t.a===oldName) t.a=n; });
+    AVC[n]=AVC[oldName];
+    artists=artists.map(a=>a===oldName?n:a);
+    render();
+    showToast('✓ Renamed to '+n);
+  });
+}
+function addArtist(){
+  showInlinePrompt('New artist name:', '', (n)=>{
+    n = n.trim();
+    if(!n) return;
+    if(artists.includes(n)){ showToast('Artist "'+n+'" already exists'); return; }
+    saveHist('Add artist: '+n);
+    artists.push(n);
+    render();
+    showToast('✓ Added '+n);
+  });
+}
+
+
+// ── INLINE PROMPT (replaces browser prompt() which is blocked in iframes) ──
+function showInlinePrompt(label, defaultVal, onConfirm){
+  const ov = document.createElement('div');
+  ov.className = 'iprompt-overlay';
+  ov.innerHTML = `
+    <div class="iprompt-box">
+      <label>${label}</label>
+      <input id="ipromptInput" type="text" value="${defaultVal.replace(/"/g,'&quot;')}" autocomplete="off" spellcheck="false">
+      <div class="iprompt-btns">
+        <button id="ipromptCancel" class="btn" style="background:none;border:1px solid var(--bdr);color:var(--muted)">Cancel</button>
+        <button id="ipromptOk" class="btn pri">OK</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  const inp = document.getElementById('ipromptInput');
+  inp.focus(); inp.select();
+  const confirm = () => { const v=inp.value; ov.remove(); onConfirm(v); };
+  const cancel  = () => ov.remove();
+  document.getElementById('ipromptOk').addEventListener('click', confirm);
+  document.getElementById('ipromptCancel').addEventListener('click', cancel);
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter') confirm(); if(e.key==='Escape') cancel(); });
+  ov.addEventListener('click', e=>{ if(e.target===ov) cancel(); });
+}
+
+// ── TOOLTIP ─────────────────────────────────────────────────────
+const ttEl=document.getElementById('tooltip');
+function showTip(e,task){
+  const tbd=isTBD(task);
+  const st=ST[task.st]||ST.NOT_STARTED;
+  const pc=PC[task.p]||'#94A3B8';
+  const jLine=task.j?`<div><span class="tt-jira" onclick="window.open('${JIRA_BASE}${task.j}','_blank')">🔗 ${task.j} ↗</span></div>`:'';
+  ttEl.innerHTML=`
+    <strong>${task.t}</strong>
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;background:${st.color};border-radius:2px;display:inline-block"></span>${st.label}${tbd?' <em style="color:#94A3B8;font-size:9px">(start TBD)</em>':''}</span>
+    <span>📅 ${tbd?`Due ${fmt(task.e)}`:`${fmt(task.s)} → ${fmt(task.e)}`}</span>
+    <span>👤 ${task.a}${task.pod?' · '+task.pod:''}</span>
+    <span><span style="background:${pc};border-radius:2px;padding:1px 5px;font-size:8px;font-weight:700">⚡ ${task.p}</span></span>
+    ${jLine}
+    ${task.n?`<span style="color:#6B7FA0;font-size:9px;font-style:italic;display:block;margin-top:2px">${task.n.slice(0,80)}</span>`:''}`;
+  ttEl.classList.add('show'); mvTip(e);
+}
+function mvTip(e){ttEl.style.left=(e.clientX+14)+'px';ttEl.style.top=(e.clientY-10)+'px'}
+function hideTip(){ttEl.classList.remove('show')}
+document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('show'))mvTip(e)});
+
+// ── CALENDAR CONTROLS ───────────────────────────────────────────
+function scrollToToday(){
+  const off = dayOf(TODAY.toISOString().slice(0,10)) * DAY_W;
+  const scroll = document.getElementById('ganttScroll');
+  const viewW = scroll.clientWidth;
+  const leftW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--lw')) || 180;
+  // Center today in the visible area (accounting for left panel)
+  const target = Math.max(0, off - (viewW - leftW) / 2);
+  scroll.scrollLeft = target;
+  // Flash the today line so it is visible
+  const line = document.getElementById('todayLine');
+  if(line){
+    line.style.transition = 'none';
+    line.style.background = '#fff';
+    line.style.width = '3px';
+    setTimeout(()=>{
+      line.style.transition = 'background 0.6s, width 0.6s';
+      line.style.background = '#22C55E';
+      line.style.width = '2px';
+    }, 120);
+  }
+}
+function toggleWorkload(){document.getElementById('wlPanel').classList.toggle('show')}
+function toggleCfg(){document.getElementById('cfgPanel').classList.toggle('open')}
+function onZoom(val){
+  DAY_W=parseFloat(val);
+  document.getElementById('zoomVal').textContent=parseFloat(val).toFixed(1)+' px';
+  render();
+  setTimeout(scrollToToday,50);
+  scheduleSave();
+}
+function onDateRangeChange(){
+  const s=document.getElementById('cfgStart').value;
+  const e=document.getElementById('cfgEnd').value;
+  if(s&&e&&s<e){
+    RANGE_START=new Date(s);
+    RANGE_END=new Date(e);
+    render();
+    setTimeout(scrollToToday,50);
+    scheduleSave();
+  }
+}
+
+// ── IMPORT ──────────────────────────────────────────────────────
+function triggerImport(){ document.getElementById('fileInput').click() }
+async function handleFileInput(ev){ await processFile(ev.target.files[0]); ev.target.value=''; }
+
+async function processFile(file){
+  if(!file) return;
+  const name = file.name.toLowerCase();
+
+  try{
+    // ── CSV path: our own exported CSV, re-imported ──────────────
+    if(name.endsWith('.csv')){
+      const text = await file.text();
+      const rows = parseCSV(text);
+      // Detect if this is our own export (header row col 0 = "Artist", strip BOM if present)
+      const firstCell = rows[0]?.[0]?.replace(/^\uFEFF/,'').trim();
+      if(rows.length && firstCell==='Artist'){
+        // Distinguish Backup CSV (col[2]=Pod) from Status CSV (col[2]=Task Title)
+        const col2 = (rows[0]?.[2]||'').trim();
+        if(col2==='Task Title'){
+          alert('This is a Status Update CSV, not a Backup.\n\nTo restore your data, use the file downloaded from the \u2193 Backup CSV button instead.');
+          return;
+        }
+        importFromExportedCSV(rows); return;
+      }
+      alert('Unrecognised CSV format. Please import the original .xlsx or a CSV exported from this tool.');
+      return;
+    }
+
+    // ── XLSX path: original Art_Jira_Schedule.xlsx ───────────────
+    if(name.endsWith('.xlsx')||name.endsWith('.xls')){
+      // Try to load SheetJS dynamically
+      if(typeof XLSX==='undefined'){
+        showToast('⏳ Loading Excel parser…');
+        await new Promise((res,rej)=>{
+          const s=document.createElement('script');
+          s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+          s.onload=res; s.onerror=rej;
+          document.head.appendChild(s);
+        }).catch(()=>null);
+      }
+      if(typeof XLSX==='undefined'){
+        alert('Could not load the Excel parser (network unavailable).\n\nWorkaround:\n1. Open the file in Google Sheets\n2. File → Download → CSV\n3. Drop that CSV here instead.');
+        return;
+      }
+      const buf = await file.arrayBuffer();
+      const wb  = XLSX.read(buf);
+      const ws  = wb.Sheets['Current Schedule'] || wb.Sheets[wb.SheetNames[0]];
+      if(!ws){ alert('Could not find "Current Schedule" sheet.'); return; }
+      const data = XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:false});
+      importFromJiraSheet(data);
+      return;
+    }
+
+    alert('Please drop an .xlsx file (original Jira schedule) or a .csv exported from this Gantt tool.');
+  } catch(err){ console.error(err); alert('Import error: '+err.message); }
+}
+
+// Parse CSV text → array of string arrays, handles quoted fields
+function parseCSV(text){
+  const rows=[];
+  const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  for(const line of lines){
+    if(!line.trim()){ rows.push([]); continue; }
+    const cols=[]; let cur='', inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){ if(inQ&&line[i+1]==='"'){ cur+='"'; i++; } else inQ=!inQ; }
+      else if(c===','&&!inQ){ cols.push(cur); cur=''; }
+      else cur+=c;
+    }
+    cols.push(cur); rows.push(cols);
+  }
+  return rows;
+}
+
+// Import from OUR exported CSV
+// Columns: Artist, Jira, Pod, Priority, Status, Title, Start Date (Gantt), Due/End, Notes
+function importFromExportedCSV(rows){
+  const STATUS_MAP={'Done':'DONE','In Progress':'PROGRESS','Not Started':'NOT_STARTED',
+    'Awaiting Feedback':'FEEDBACK','Awaiting TPC':'FEEDBACK','TPCi Review':'TPCI',
+    'Art Internal':'INTERNAL','On Hold':'HOLD','Cancelled':'CANCELLED',
+    'V1 Done, V2 To Do':'V1DONE','Need Alignment':'ALIGNMENT'};
+  const imported=[]; let nid=Date.now();
+  const newArtists=new Set();
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    const artist=(r[0]||'').trim();
+    if(!artist) continue;
+    const title=(r[5]||'').trim(); if(!title) continue;
+    const startRaw=(r[6]||'').trim();
+    const endRaw  =(r[7]||'').trim();
+    const startDate = startRaw&&startRaw!=='(TBD — set start date in Gantt)'&&!isNaN(new Date(startRaw)) ? new Date(startRaw).toISOString().slice(0,10) : '';
+    const endDate   = endRaw&&!isNaN(new Date(endRaw)) ? new Date(endRaw).toISOString().slice(0,10) : addDays(RANGE_END.toISOString().slice(0,10),-30);
+    const status = STATUS_MAP[(r[4]||'').trim()] || 'NOT_STARTED';
+    newArtists.add(artist);
+    imported.push({id:++nid, a:artist, t:title, s:startDate, e:endDate,
+      st:status, p:(r[3]||'P1').trim(), j:(r[1]||'').trim(),
+      pod:(r[2]||'').trim(), n:(r[8]||'').trim()});
+  }
+  if(!imported.length){ alert('No tasks found in CSV.'); return; }
+  saveHist('Before CSV re-import');
+  tasks=imported; artists=[...newArtists];
+  render();
+  showToast(`✅ Re-imported ${tasks.length} tasks from CSV`);
+}
+
+// Import from original Jira Art_Jira_Schedule.xlsx
+function importFromJiraSheet(data){
+  const STOP=['To Be Assigned','Reverse Moves','Bug Fixes','Extra Stuff','Recently Completed'];
+  const STATUS_MAP={'in progress':'PROGRESS','done':'DONE','not started':'NOT_STARTED',
+    'awaiting feedback':'FEEDBACK','awaiting tpc':'FEEDBACK','tpci review':'TPCI',
+    'art internal':'INTERNAL','on hold':'HOLD','no fix?':'HOLD',
+    'cancelled':'CANCELLED','v1 done, v2 to do':'V1DONE','need alignment':'ALIGNMENT'};
+  const BAD=['?','tentative','if needed','hold','discussion','reuse','joe for concept'];
+  const imported=[]; let nid=Date.now(); const newArtists=new Set();
+  let lastArtist=null;
+
+  // Detect if this is our own exported Excel (header row 0 has "Artist","Jira Ticket","Pod","Priority","Status","Task Title","Start Date","Due / End Date")
+  // vs the original Jira sheet (headers in row 5, data from row 7+)
+  const firstRow = data[0] || [];
+  const isOwnExport = firstRow[0]==='Artist' && firstRow[1]==='Jira Ticket' && firstRow[5]==='Task Title';
+
+  if(isOwnExport){
+    // Our own exported Current Schedule format:
+    // Col: A=Artist, B=Jira, C=Pod, D=Priority, E=Status, F=Task Title, G=Start Date, H=Due/End Date
+    // Indices: 0,       1,     2,    3,           4,        5,             6,             7
+    for(let i=1;i<data.length;i++){
+      const row=data[i]; if(!row) continue;
+      const aRaw=row[0];
+      if(aRaw&&typeof aRaw==='string'&&STOP.some(s=>aRaw.trim().startsWith(s))) break;
+      const artistRaw=(typeof aRaw==='string'&&aRaw.trim())?aRaw.trim():null;
+      if(artistRaw) lastArtist=artistRaw;
+      const artist=lastArtist;
+      if(!artist) continue;
+      if(BAD.some(b=>artist.toLowerCase().includes(b))) continue;
+      const title=(row[5]||'').toString().trim(); if(title.length<2) continue;
+      const startRaw=row[6], dueRaw=row[7];
+      let start='',due='';
+      if(startRaw&&startRaw!=='Ongoing'&&startRaw!=='N/A'){
+        const ds=startRaw instanceof Date?startRaw:new Date(startRaw);
+        if(!isNaN(ds)) start=ds.toISOString().slice(0,10);
+      }
+      if(dueRaw&&dueRaw!=='Ongoing'&&dueRaw!=='N/A'){
+        const d=dueRaw instanceof Date?dueRaw:new Date(dueRaw);
+        if(!isNaN(d)) due=d.toISOString().slice(0,10);
+      }
+      if(!due) due=addDays(RANGE_END.toISOString().slice(0,10),-30);
+      if(!start && due) start=addDays(due,-28);
+      const statusRaw=(row[4]||'').toString().trim().toLowerCase();
+      let clean=title.replace(/\[GO Fest 2026\]\[Art\]\s*-?\s*/gi,'').replace(/\[Art\]\s*/gi,'')
+        .replace(/\[Charged Attack\]/gi,'CA:').replace(/\[NPB\]\[Art\]\s*-?\s*/gi,'NPB: ').trim();
+      if(clean.length>72) clean=clean.slice(0,70)+'…';
+      newArtists.add(artist);
+      imported.push({id:++nid, a:artist, t:clean, s:start, e:due,
+        st:STATUS_MAP[statusRaw]||'NOT_STARTED', p:(row[3]||'P1').toString().trim(),
+        j:(row[1]||'').toString().trim(), pod:(row[2]||'').toString().trim(), n:''});
+    }
+  } else {
+    // Original Jira sheet format: headers in row 5, data from row 6+
+    // Col: A=Artist, B=Jira, ...F=Status(idx5), ...I=Task(idx8), J=Start(idx9), K=Due(idx10)
+    for(let i=6;i<data.length;i++){
+      const row=data[i]; if(!row) continue;
+      const aRaw=row[0];
+      if(aRaw&&typeof aRaw==='string'&&STOP.some(s=>aRaw.trim().startsWith(s))) break;
+      const artistRaw=(typeof aRaw==='string'&&aRaw.trim())?aRaw.trim():null;
+      if(artistRaw) lastArtist=artistRaw;
+      const artist=lastArtist;
+      if(!artist) continue;
+      if(BAD.some(b=>artist.toLowerCase().includes(b))) continue;
+      const title=(row[8]||'').toString().trim(); if(title.length<2) continue;
+      const startRaw=row[9], dueRaw=row[10];
+      let start='',due='';
+      if(startRaw&&startRaw!=='Ongoing'&&startRaw!=='N/A'){
+        const ds=new Date(startRaw); if(!isNaN(ds)) start=ds.toISOString().slice(0,10);
+      }
+      if(dueRaw&&dueRaw!=='Ongoing'&&dueRaw!=='N/A'){
+        const d=new Date(dueRaw); if(!isNaN(d)) due=d.toISOString().slice(0,10);
+      }
+      if(!due) due=addDays(RANGE_END.toISOString().slice(0,10),-30);
+      if(!start && due) start=addDays(due,-28);
+      const statusRaw=(row[5]||'').toString().trim().toLowerCase();
+      let clean=title.replace(/\[GO Fest 2026\]\[Art\]\s*-?\s*/gi,'').replace(/\[Art\]\s*/gi,'')
+        .replace(/\[Charged Attack\]/gi,'CA:').replace(/\[NPB\]\[Art\]\s*-?\s*/gi,'NPB: ').trim();
+      if(clean.length>72) clean=clean.slice(0,70)+'…';
+      newArtists.add(artist);
+      imported.push({id:++nid, a:artist, t:clean, s:start, e:due,
+        st:STATUS_MAP[statusRaw]||'NOT_STARTED', p:(row[7]||'P1').toString().trim(),
+        j:(row[1]||'').toString().trim(), pod:`${(row[4]||row[3]||'').toString().trim()}`, n:''});
+    }
+  }
+  if(!imported.length){ alert('No tasks found in the spreadsheet.'); return; }
+  const existingCount=tasks.length;
+  if(existingCount>0){
+    const choice=confirm(
+      `Import ${imported.length} tasks from ${[...newArtists].length} artists.\n\n`+
+      `OK = Replace all existing tasks\n`+
+      `Cancel = Merge (keep existing, add/update from spreadsheet)`
+    );
+    if(choice){
+      // Replace
+      saveHist('Before xlsx replace');
+      tasks=imported; artists=[...newArtists];
+    } else {
+      // Merge: update existing by Jira, append new ones
+      saveHist('Before xlsx merge');
+      const jiraMap={}; tasks.forEach(t=>{ if(t.j) jiraMap[t.j]=t; });
+      imported.forEach(imp=>{
+        if(imp.j && jiraMap[imp.j]){
+          // Update status, dates on existing task
+          Object.assign(jiraMap[imp.j], {st:imp.st, s:imp.s, e:imp.e, p:imp.p});
+        } else {
+          tasks.push(imp);
+        }
+        if(!artists.includes(imp.a)) artists.push(imp.a);
+      });
+    }
+  } else {
+    saveHist('Before xlsx import');
+    tasks=imported; artists=[...newArtists];
+  }
+  render();
+  showToast(`✅ Imported ${imported.length} tasks from ${[...newArtists].length} artists`);
+
+  // After importing, offer to write changes back to the source Google Sheet
+  syncXlsxToGoogleSheet(imported);
+}
+
+// ── SYNC IMPORTED XLSX DATA BACK TO GOOGLE SHEET ─────────────────
+// Called automatically after every xlsx import. Reads the live sheet,
+// matches rows by Jira ticket, and updates only Status + Start + Due Date.
+const SYNC_SHEET_ID = '1Za6VOtrqpZAYeCKpAcUfri2adu0P8_2iOU9RSfOYmOg';
+
+async function syncXlsxToGoogleSheet(importedTasks){
+  // Only tasks that have a Jira ticket can be matched
+  const withJira = importedTasks.filter(t => t.j);
+  if(!withJira.length) return;
+
+  // Show a small non-blocking prompt
+  document.getElementById('xlsxSyncBanner')?.remove();
+  const banner = document.createElement('div');
+  banner.id = 'xlsxSyncBanner';
+  banner.style.cssText = 'position:fixed;bottom:36px;left:50%;transform:translateX(-50%);background:#0E1016;border:1px solid #2A2F45;border-radius:10px;padding:14px 20px;z-index:5000;display:flex;align-items:center;gap:14px;box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:IBM Plex Sans,sans-serif;min-width:380px;max-width:500px';
+  banner.innerHTML = `
+    <div style="flex:1">
+      <div style="font-size:12px;font-weight:700;color:#fff">Update Google Sheet?</div>
+      <div style="font-size:10px;color:#5A6280;margin-top:2px">Write Status · Start Date · Due Date for <strong style="color:#74AAFF">${withJira.length} matched tasks</strong> back to the source spreadsheet</div>
+    </div>
+    <button id="xlsxSyncYes" style="background:#4285F4;border:none;color:#fff;padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">⬆ Update Sheet</button>
+    <button onclick="document.getElementById('xlsxSyncBanner').remove()" style="background:none;border:1px solid #2A2F45;color:#5A6280;padding:7px 12px;border-radius:6px;font-size:12px;cursor:pointer">Skip</button>`;
+  document.body.appendChild(banner);
+  // Auto-dismiss after 12s if no action
+  const autoClose = setTimeout(()=>banner.remove(), 12000);
+
+  document.getElementById('xlsxSyncYes').onclick = ()=>{
+    clearTimeout(autoClose);
+    // Step 2: ask for the sheet URL
+    banner.innerHTML = `
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:6px">Paste the Google Sheet URL</div>
+        <input id="xlsxSyncUrlInput" type="text" placeholder="https://docs.google.com/spreadsheets/d/…"
+          style="width:100%;border:1.5px solid #2A2F45;border-radius:6px;padding:7px 10px;font-size:11px;font-family:'IBM Plex Mono',monospace;background:#060810;color:#C8CDE8;outline:none"
+          oninput="this.style.borderColor=this.value.trim()?'#4285F4':'#2A2F45'">
+        <div style="font-size:9px;color:#3A4060;margin-top:5px;font-family:'IBM Plex Mono',monospace">Only rows matched by Jira ticket will be changed · Status, Start Date, Due Date only</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+        <button id="xlsxSyncConfirm" style="background:#4285F4;border:none;color:#fff;padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">⬆ Push</button>
+        <button onclick="document.getElementById('xlsxSyncBanner').remove()" style="background:none;border:1px solid #2A2F45;color:#5A6280;padding:7px 12px;border-radius:6px;font-size:12px;cursor:pointer;text-align:center">Cancel</button>
+      </div>`;
+
+    // Focus the input
+    setTimeout(()=>document.getElementById('xlsxSyncUrlInput')?.focus(), 50);
+
+    // Step 3: push when confirmed
+    document.getElementById('xlsxSyncConfirm').onclick = async ()=>{
+      const raw = document.getElementById('xlsxSyncUrlInput')?.value.trim();
+      if(!raw){ document.getElementById('xlsxSyncUrlInput').style.borderColor='#EF4444'; return; }
+
+      // Extract spreadsheet ID from URL or use as-is if it looks like a raw ID
+      const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+      const sheetId = match ? match[1] : raw;
+      if(!sheetId || sheetId.length < 20){
+        document.getElementById('xlsxSyncUrlInput').style.borderColor='#EF4444';
+        document.getElementById('xlsxSyncUrlInput').placeholder='⚠ Paste a valid Google Sheets URL';
+        return;
+      }
+
+      banner.innerHTML = `<div style="color:#F59E0B;font-size:12px;font-family:'IBM Plex Mono',monospace;padding:2px 0">⏳ Updating Google Sheet…</div>`;
+
+      const payload = withJira.map(t => ({
+        jira:      t.j,
+        status:    ST[t.st]?.label || t.st,
+        startDate: t.s || '',
+        dueDate:   t.e || ''
+      }));
+
+      const prompt = `You are a Google Sheets update agent. Update spreadsheet ID "${sheetId}", sheet "Current Schedule".
+
+Column layout (1-indexed): A=Artist, B=Jira Ticket, F=Status, J=Start Date, K=Due Date.
+Data rows start at row 8. Header is row 6.
+
+For each item below, find the row where column B exactly matches the jira field, then update ONLY:
+- Column F = status
+- Column J = startDate (leave blank if empty string)
+- Column K = dueDate
+
+Do NOT add new rows. Do NOT touch any other columns. Match is case-insensitive on Jira ticket.
+
+Tasks (${payload.length}):
+${JSON.stringify(payload)}
+
+Reply with a brief summary: how many rows were updated.`;
+
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1000,
+            messages: [{ role: 'user', content: prompt }],
+            mcp_servers: [{ type: 'url', url: 'https://docsuite.mcp.scopelyai.com/mcp', name: 'google-docs-suite' }]
+          })
+        });
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const summary = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join(' ').trim() || 'Sheet updated.';
+
+        banner.innerHTML = `
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:700;color:#34A853">✅ Google Sheet updated</div>
+            <div style="font-size:10px;color:#5A6280;margin-top:2px">${summary}</div>
+          </div>
+          <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank"
+            style="background:none;border:1px solid #2A2F45;color:#34A853;padding:7px 12px;border-radius:6px;font-size:11px;cursor:pointer;text-decoration:none;white-space:nowrap">↗ Open Sheet</a>
+          <button onclick="document.getElementById('xlsxSyncBanner').remove()" style="background:none;border:none;color:#5A6280;font-size:18px;cursor:pointer;line-height:1">✕</button>`;
+        setTimeout(()=>banner.remove(), 8000);
+
+      } catch(err) {
+        banner.innerHTML = `
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:700;color:#EF4444">✕ Sync failed</div>
+            <div style="font-size:10px;color:#5A6280;margin-top:2px">${err.message} — check Sheet permissions &amp; connector</div>
+          </div>
+          <button onclick="document.getElementById('xlsxSyncBanner').remove()" style="background:none;border:none;color:#5A6280;font-size:18px;cursor:pointer;line-height:1">✕</button>`;
+      }
+    };
+  };
+}
+
+// ── STATUS UPDATE MODAL ───────────────────────────────────────────
+// Shows a clean, readable list of all task statuses grouped by artist.
+// User can reference this while updating their spreadsheet manually,
+// or copy the table to paste anywhere.
+function exportSyncPatch(){
+  if(!tasks.length){ alert('No tasks to export.'); return; }
+  showStatusUpdateModal();
+}
+
+// Format a task date value as YYYY-MM-DD string for clean CSV export
+function fmtD(d){
+  if(!d) return '';
+  // Already a YYYY-MM-DD string
+  if(typeof d==='string' && /^\d{4}-\d{2}-\d{2}/.test(d)) return d.slice(0,10);
+  // Date object
+  const dt = new Date(d);
+  if(isNaN(dt)) return String(d);
+  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+}
+
+function showStatusUpdateModal(){
+  document.getElementById('statusUpdateModal')?.remove();
+
+  // Group tasks by artist
+  const byArtist = {};
+  artists.forEach(a=>{ byArtist[a]=[]; });
+  tasks.forEach(t=>{ if(byArtist[t.a]) byArtist[t.a].push(t); });
+
+  // Build rows HTML
+  const statusColor = {
+    DONE:'#34A853', PROGRESS:'#3D5AF1', REVIEW:'#8B5CF6',
+    BLOCKED:'#EF4444', NOT_STARTED:'#94A3B8', TBD:'#F59E0B'
+  };
+
+  let rowsHtml = '';
+  let totalTasks = 0;
+  artists.forEach(name=>{
+    const ts = byArtist[name]||[];
+    if(!ts.length) return;
+    rowsHtml += `<tr style="background:#F8FAFF"><td colspan="4" style="padding:6px 10px 4px;font-size:10px;font-weight:700;color:#7882A4;text-transform:uppercase;letter-spacing:.8px;font-family:'IBM Plex Mono',monospace">${name}</td></tr>`;
+    ts.forEach(t=>{
+      totalTasks++;
+      const st = ST[t.st]||ST.NOT_STARTED;
+      const dot = statusColor[t.st]||'#94A3B8';
+      const jiraHtml = t.j ? `<span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7882A4">${t.j}</span>` : '<span style="color:#DDE2F0;font-size:10px">—</span>';
+      rowsHtml += `<tr style="border-bottom:1px solid #F0F2F8">
+        <td style="padding:5px 10px;font-size:11px;color:#18192A;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.t}</td>
+        <td style="padding:5px 10px">${jiraHtml}</td>
+        <td style="padding:5px 10px;white-space:nowrap">
+          <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:${dot}">
+            <span style="width:7px;height:7px;border-radius:50%;background:${dot};flex-shrink:0;display:inline-block"></span>
+            ${st.label||t.st}
+          </span>
+        </td>
+        <td style="padding:5px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7882A4;white-space:nowrap">${t.s&&t.e?fmt(t.s)+'→'+fmt(t.e):'—'}</td>
+      </tr>`;
+    });
+  });
+
+  // Also build CSV for download
+  function csv(v){const s=String(v==null?'':v);return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;}
+  const cols=['Artist','Jira Ticket','Task Title','Status','Start Date','Due Date'];
+  const lines=[cols.map(csv).join(',')];
+  tasks.forEach(t=>{
+    lines.push([t.a,t.j||'',t.t,ST[t.st]?.label||t.st,fmtD(t.s),fmtD(t.e)].map(csv).join(','));
+  });
+  const csvData = '\uFEFF'+lines.join('\r\n');
+
+  const modal = document.createElement('div');
+  modal.id = 'statusUpdateModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:12px;max-width:620px;width:100%;font-family:'IBM Plex Sans',sans-serif;box-shadow:0 24px 64px rgba(0,0,0,.35);display:flex;flex-direction:column;max-height:85vh">
+      <div style="padding:18px 22px 12px;border-bottom:1px solid #EEF0F8;display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#18192A">📋 Status Update</div>
+          <div style="font-size:11px;color:#7882A4;margin-top:2px">${totalTasks} tasks · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button onclick="statusModalDownloadCSV()" style="background:none;border:1.5px solid #DDE2F0;color:#7882A4;padding:5px 12px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600" title="Download as CSV">↓ CSV</button>
+          <button onclick="copyCSVText()" id="copyCSVBtn" style="background:none;border:1.5px solid #1a73e8;color:#1a73e8;padding:5px 12px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600" title="Copy CSV to clipboard for Paste Sync">📋 Copy CSV</button>
+          <button onclick="showPasteSyncModal()" style="background:#34A853;border:none;color:#fff;padding:5px 12px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600" title="Sync via paste dialog in Google Sheets">⚡ Paste Sync</button>
+          <button onclick="document.getElementById('statusUpdateModal').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999;line-height:1">✕</button>
+        </div>
+      </div>
+      <div style="overflow-y:auto;flex:1">
+        <table style="width:100%;border-collapse:collapse">
+          <thead style="position:sticky;top:0;background:#fff;z-index:1">
+            <tr style="border-bottom:2px solid #EEF0F8">
+              <th style="text-align:left;padding:7px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7882A4;font-family:'IBM Plex Mono',monospace">Task</th>
+              <th style="text-align:left;padding:7px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7882A4;font-family:'IBM Plex Mono',monospace">Jira</th>
+              <th style="text-align:left;padding:7px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7882A4;font-family:'IBM Plex Mono',monospace">Status</th>
+              <th style="text-align:left;padding:7px 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7882A4;font-family:'IBM Plex Mono',monospace">Dates</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+      <div style="padding:12px 22px;border-top:1px solid #EEF0F8;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:10px;color:#BCC2D4;font-family:'IBM Plex Mono',monospace">Use this as a reference while updating your spreadsheet</div>
+        <button onclick="document.getElementById('statusUpdateModal').remove()" style="background:#18192A;border:none;color:#fff;padding:8px 18px;border-radius:5px;font-size:12px;cursor:pointer;font-weight:600">Done</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+
+  // Store CSV data for download button
+  modal._csvData = csvData;
+}
+
+
+function showSyncScriptModal(){
+  document.getElementById('syncScriptModal')?.remove();
+
+  // Static Apps Script — reads from a tab named "GanttData" the user adds to their sheet
+  const script = "function syncGanttToSheet() {\n  var JIRA_COL=2,STATUS_COL=6,START_COL=10,DUE_COL=11,ARTIST_COL=1,TASK_COL=9,DATA_START_ROW=8;\n  var MAIN_SHEET=\"Current Schedule\",GANTT_TAB=\"GanttData\";\n  var STATUS_MAP={\"Done\":\"Done\",\"In Progress\":\"In Progress\",\"Not Started\":\"Not Started\",\"Awaiting Feedback\":\"Awaiting Feedback\",\"TPCi Review\":\"TPCi Review\",\"Art Internal\":\"Art Internal\",\"On Hold\":\"On Hold\",\"Cancelled\":\"Cancelled\",\"V1 Done, V2 To Do\":\"V1 Done, V2 To Do\",\"Need Alignment\":\"Need Alignment\"};\n  var ss=SpreadsheetApp.getActiveSpreadsheet();\n  var mainSheet=ss.getSheetByName(MAIN_SHEET)||ss.getActiveSheet();\n  var ganttSheet=ss.getSheetByName(GANTT_TAB);\n  if(!ganttSheet){SpreadsheetApp.getUi().alert(\"Import CSV as GanttData tab first.\");return;}\n  var ganttRows=ganttSheet.getDataRange().getValues();\n  var header=ganttRows[0].map(function(h){return String(h).trim().toLowerCase();});\n  var iJira=header.indexOf(\"jira ticket\"),iStatus=header.indexOf(\"status\");\n  var iStart=header.indexOf(\"start date\"),iDue=header.indexOf(\"due date\");\n  var iArtist=header.indexOf(\"artist\"),iTask=header.indexOf(\"task title\");\n  if(iJira<0||iStatus<0){SpreadsheetApp.getUi().alert(\"Could not read GanttData columns.\");return;}\n  var ganttMap={},ganttList=[];\n  for(var r=1;r<ganttRows.length;r++){\n    var jv=String(ganttRows[r][iJira]||\"\").trim();\n    var entry={jira:jv,status:String(ganttRows[r][iStatus]||\"\").trim(),\n      start:iStart>=0?(ganttRows[r][iStart]||\"\"):\"\",due:iDue>=0?(ganttRows[r][iDue]||\"\"):\"\",\n      artist:iArtist>=0?String(ganttRows[r][iArtist]||\"\").trim():\"\",\n      task:iTask>=0?String(ganttRows[r][iTask]||\"\").trim():\"\"};\n    if(jv)ganttMap[jv]=entry;\n    if(entry.artist)ganttList.push(entry);\n  }\n  var lastRow=mainSheet.getLastRow();\n  var numRows=lastRow-DATA_START_ROW+1;\n  var allData=mainSheet.getRange(DATA_START_ROW,1,numRows,DUE_COL).getValues();\n  var sheetJiras={},artistLastRow={},updated=0;\n  var statusChanges=[],startChanges=[],dueChanges=[];\n  for(var i=0;i<allData.length;i++){\n    var row=DATA_START_ROW+i;\n    var rowArtist=String(allData[i][ARTIST_COL-1]||\"\").trim();\n    var rowJira=String(allData[i][JIRA_COL-1]||\"\").trim();\n    if(rowArtist)artistLastRow[rowArtist]=row;\n    if(!rowJira)continue;\n    sheetJiras[rowJira]=row;\n    var g=ganttMap[rowJira];\n    if(!g)continue;\n    if(g.status)statusChanges.push([row,STATUS_MAP[g.status]||g.status]);\n    if(g.start)startChanges.push([row,parseDate(g.start)]);\n    if(g.due)dueChanges.push([row,parseDate(g.due)]);\n    updated++;\n  }\n  for(var s=0;s<statusChanges.length;s++){\n    mainSheet.getRange(statusChanges[s][0],STATUS_COL).setValue(statusChanges[s][1]);\n  }\n  for(var sd=0;sd<startChanges.length;sd++){\n    var rng=mainSheet.getRange(startChanges[sd][0],START_COL);\n    rng.setValue(startChanges[sd][1]);rng.setNumberFormat(\"M/d/yy\");\n  }\n  for(var dd=0;dd<dueChanges.length;dd++){\n    var rng=mainSheet.getRange(dueChanges[dd][0],DUE_COL);\n    rng.setValue(dueChanges[dd][1]);rng.setNumberFormat(\"M/d/yy\");\n  }\n  var newTasks=[],added=0;\n  for(var n=0;n<ganttList.length;n++){\n    var t=ganttList[n];\n    if(t.jira&&!sheetJiras[t.jira])newTasks.push(t);\n  }\n  if(newTasks.length>0){\n    var appendData=[];\n    for(var nt=0;nt<newTasks.length;nt++){\n      var task=newTasks[nt];\n      var newRow=new Array(DUE_COL).fill(\"\");\n      newRow[ARTIST_COL-1]=task.artist;newRow[JIRA_COL-1]=task.jira;\n      newRow[TASK_COL-1]=task.task;newRow[STATUS_COL-1]=STATUS_MAP[task.status]||task.status||\"\";\n      newRow[START_COL-1]=task.start?parseDate(task.start):\"\";\n      newRow[DUE_COL-1]=task.due?parseDate(task.due):\"\";\n      appendData.push(newRow);added++;\n    }\n    var as=mainSheet.getLastRow()+1;\n    mainSheet.getRange(as,1,appendData.length,DUE_COL).setValues(appendData);\n    mainSheet.getRange(as,START_COL,appendData.length,1).setNumberFormat(\"M/d/yy\");\n    mainSheet.getRange(as,DUE_COL,appendData.length,1).setNumberFormat(\"M/d/yy\");\n  }\n  try{var tab=ss.getSheetByName(GANTT_TAB);if(tab)ss.deleteSheet(tab);}catch(e){}\n  var msg=\"Sync complete! Updated \"+updated+\" rows.\";\n  if(added>0)msg+=\" Added \"+added+\" new tasks.\";\n  SpreadsheetApp.getUi().alert(msg);\n}\nfunction parseDate(s){\n  if(!s)return null;\n  if(s instanceof Date)return new Date(s.getFullYear(),s.getMonth(),s.getDate(),12,0,0);\n  var str=String(s).trim(),p=str.split(\"-\");\n  if(p.length===3)return new Date(parseInt(p[0],10),parseInt(p[1],10)-1,parseInt(p[2],10),12,0,0);\n  var d=new Date(str);\n  if(!isNaN(d))return new Date(d.getFullYear(),d.getMonth(),d.getDate(),12,0,0);\n  return null;\n}";
+
+  const sm = document.createElement('div');
+  sm.id = 'syncScriptModal';
+  sm.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px';
+  sm.innerHTML = `
+    <div style="background:#fff;border-radius:12px;max-width:580px;width:100%;font-family:'IBM Plex Sans',sans-serif;box-shadow:0 24px 64px rgba(0,0,0,.4);display:flex;flex-direction:column;max-height:90vh">
+      <div style="padding:18px 22px 12px;border-bottom:1px solid #EEF0F8;display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#18192A">⚡ Sync to Google Sheets</div>
+          <div style="font-size:11px;color:#7882A4;margin-top:3px">Updates only Status, Start Date, Due Date — everything else stays untouched</div>
+        </div>
+        <button onclick="document.getElementById('syncScriptModal').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999;line-height:1;margin-left:12px">✕</button>
+      </div>
+      <div style="padding:16px 22px;overflow-y:auto;flex:1">
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+          ${[
+            ['1','Download the CSV','Click <strong>↓ CSV</strong> in the Status Update window to get the latest data file'],
+            ['2','Add it to your spreadsheet','In your Google Sheet: <strong>File → Import → Upload</strong> that CSV → choose <strong>"Insert as new sheet"</strong>, set Separator to <strong>Comma</strong>, and <strong>uncheck</strong> "Convert text to numbers, dates, and formulas" → then rename that tab to exactly: <code style="background:#F0F2F8;padding:1px 5px;border-radius:3px;font-family:IBM Plex Mono,monospace">GanttData</code>'],
+            ['3','Open Apps Script','In your spreadsheet: <strong>Extensions → Apps Script</strong>'],
+            ['4','Paste & run','Delete existing code, paste the script below, click <strong>Save 💾</strong> then <strong>Run ▶</strong>. Authorize once when Google asks.'],
+            ['5','Done','Next time: just replace the GanttData tab with a fresh CSV and click Run again — no copy/paste needed']
+          ].map(([n,title,desc])=>`
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <span style="width:22px;height:22px;border-radius:50%;background:#34A853;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${n}</span>
+            <div style="font-size:12px;color:#333;line-height:1.6"><strong>${title}</strong><br><span style="color:#555">${desc}</span></div>
+          </div>`).join('')}
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7882A4;font-family:'IBM Plex Mono',monospace">Apps Script</div>
+          <button id="copyScriptBtn" onclick="copyGanttScript()" style="background:#34A853;border:none;color:#fff;padding:5px 14px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600">📋 Copy</button>
+        </div>
+        <pre style="background:#F8FAFF;border:1.5px solid #DDE2F0;border-radius:7px;padding:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#444;white-space:pre;overflow:auto;max-height:180px;line-height:1.6;margin:0" id="scriptPreview"></pre>
+      </div>
+      <div style="padding:12px 22px;border-top:1px solid #EEF0F8;display:flex;justify-content:flex-end;gap:8px">
+        <button onclick="document.getElementById('syncScriptModal').remove()" style="background:none;border:1px solid #DDE2F0;color:#7882A4;padding:7px 16px;border-radius:5px;font-size:12px;cursor:pointer">Close</button>
+        <button onclick="copyGanttScript()" style="background:#34A853;border:none;color:#fff;padding:8px 20px;border-radius:5px;font-size:12px;cursor:pointer;font-weight:600">📋 Copy Script</button>
+      </div>
+    </div>`;
+  document.body.appendChild(sm);
+  sm.addEventListener('click', e=>{ if(e.target===sm) sm.remove(); });
+  sm._script = script;
+
+  // Safely set script text (no innerHTML injection risk)
+  const pre = document.getElementById('scriptPreview');
+  if(pre) pre.textContent = script;
+}
+
+function copyGanttScript(){
+  const sm = document.getElementById('syncScriptModal');
+  if(!sm?._script) return;
+  navigator.clipboard.writeText(sm._script).then(()=>{
+    const btn = document.getElementById('copyScriptBtn');
+    if(btn){ btn.textContent='✓ Copied!'; btn.style.background='#059669'; setTimeout(()=>{ btn.textContent='📋 Copy'; btn.style.background='#34A853'; },2000); }
+    showToast('✓ Script copied — paste into Apps Script editor');
+  }).catch(()=>{
+    // Fallback: select the text
+    const pre = document.getElementById('scriptPreview');
+    if(pre){ const r=document.createRange(); r.selectNode(pre); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); }
+    showToast('Select all (⌘A) and copy the script text');
+  });
+}
+
+function statusModalDownloadCSV(){
+  const modal = document.getElementById('statusUpdateModal');
+  if(!modal?._csvData) return;
+  const blob = new Blob([modal._csvData],{type:'text/csv;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`Gantt_Status_${TODAY.toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);document.body.removeChild(a);},1000);
+}
+
+// ── EXPORT CSV (full backup) ──────────────────────────────────────
+function exportExcel(){
+  if(!tasks.length){ alert('No tasks to export.'); return; }
+
+  // Wrap a cell value safely for CSV
+  function csv(v){
+    const s = String(v == null ? '' : v);
+    // If it contains a comma, newline, or quote — wrap in quotes and escape inner quotes
+    if(s.includes(',') || s.includes('"') || s.includes('\n'))
+      return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  const cols = ['Artist','Jira Ticket','Pod','Priority','Status','Task Title','Start Date (Gantt)','Due / End Date','Notes'];
+  const lines = [cols.map(csv).join(',')];
+
+  artists.forEach(name => {
+    atasks(name).forEach(task => {
+      lines.push([
+        task.a,
+        task.j || '',
+        task.pod || '',
+        task.p,
+        ST[task.st]?.label || task.st,
+        task.t,
+        task.s || '',          // empty = TBD; re-import will treat blank as TBD
+        task.e || '',
+        task.n || ''
+      ].map(csv).join(','));
+    });
+    lines.push(''); // blank row between artists for readability
+  });
+
+  const csvText = lines.join('\r\n');
+  const blob = new Blob(['\uFEFF' + csvText], { type: 'text/csv;charset=utf-8' }); // BOM for Excel compatibility
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `Art_Gantt_Export_${TODAY.toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
+  showToast(`📤 Exported ${tasks.length} tasks as CSV — open in Google Sheets or Excel`);
+}
+
+// ── DRAG & DROP FILES ────────────────────────────────────────────
+document.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('dropOverlay').classList.add('active')});
+document.addEventListener('dragleave',e=>{if(!e.relatedTarget)document.getElementById('dropOverlay').classList.remove('active')});
+document.addEventListener('drop',async e=>{
+  e.preventDefault();
+  document.getElementById('dropOverlay').classList.remove('active');
+  const file=e.dataTransfer.files[0];
+  if(file) await processFile(file);
+});
+
+// ── CONFIG CLOSE ON OUTSIDE CLICK ───────────────────────────────
+document.addEventListener('click',e=>{
+  const p=document.getElementById('cfgPanel');
+  if(p.classList.contains('open')&&!p.contains(e.target)&&!e.target.closest('.btn')) p.classList.remove('open');
+});
+
+// ── KEYBOARD SHORTCUTS ───────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ closeEdit(); document.getElementById('cfgPanel').classList.remove('open'); }
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){ e.preventDefault(); undo(); }
+  if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){ e.preventDefault(); redo(); }
+});
+
+
+// ═══════════════════════════════════════════════════════════════
+// GOOGLE DRIVE INTEGRATION
+// ═══════════════════════════════════════════════════════════════
+let GD = {
+  clientId: localStorage.getItem('gd_client_id') || '',
+  accessToken: null,
+  tokenExpiry: 0,
+  pickerLoaded: false,
+  driveLoaded: false,
+  lastSavedFileId: localStorage.getItem('gd_last_file_id') || '',
+  lastSavedFileName: localStorage.getItem('gd_last_file_name') || '',
+};
+
+// ── Setup modal ───────────────────────────────────────────────
+function showGDSetup(afterSetup){
+  document.getElementById('gdSetupModal')?.remove();
+  const hasId = GD.clientId.length > 10;
+  const m = document.createElement('div');
+  m.className = 'gd-modal'; m.id = 'gdSetupModal';
+  m.innerHTML = `
+    <div class="gd-box">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <h3>🔑 Connect Google Drive</h3>
+          <p style="margin:0;font-size:11px;color:#7882A4">One-time setup — takes ~5 minutes</p>
+        </div>
+        <button onclick="document.getElementById('gdSetupModal').remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#999">✕</button>
+      </div>
+      <div class="gd-steps">
+        <div class="gd-step"><div class="gd-step-n">1</div><div>Go to <a class="gd-link" href="https://console.cloud.google.com/apis/credentials" target="_blank">console.cloud.google.com/apis/credentials</a><br>Create a project if you don't have one yet</div></div>
+        <div class="gd-step"><div class="gd-step-n">2</div><div>Click <strong>+ Create Credentials → OAuth client ID</strong><br>App type: <strong>Web application</strong></div></div>
+        <div class="gd-step"><div class="gd-step-n">3</div><div>Under <em>Authorized JavaScript origins</em>, add:<br><code style="background:#F0F2F8;padding:2px 6px;border-radius:3px;font-size:10px">${location.origin||'https://your-domain.com'}</code></div></div>
+        <div class="gd-step"><div class="gd-step-n">4</div><div>Also enable <strong>Google Drive API</strong> and <strong>Google Picker API</strong> in<br><a class="gd-link" href="https://console.cloud.google.com/apis/library" target="_blank">APIs & Services → Library</a></div></div>
+        <div class="gd-step"><div class="gd-step-n">5</div><div>Copy your <strong>Client ID</strong> (ends in .apps.googleusercontent.com) and paste below</div></div>
+      </div>
+      <input class="gd-input" id="gdClientIdInput" placeholder="xxxxxxxx.apps.googleusercontent.com" value="${GD.clientId}">
+      <div class="gd-hint">Your Client ID is stored only in this browser — never sent anywhere else</div>
+      <div class="gd-row">
+        <span class="gd-status" id="gdSetupStatus">${hasId?'✓ Client ID saved — click Connect to sign in':''}</span>
+        <button onclick="document.getElementById('gdSetupModal').remove()" style="background:none;border:1px solid #DDE2F0;color:#7882A4;padding:7px 14px;border-radius:5px;font-size:12px;cursor:pointer">Cancel</button>
+        <button onclick="gdSaveClientId('${afterSetup||''}')" style="background:#4285F4;border:none;color:#fff;padding:8px 20px;border-radius:5px;font-size:12px;cursor:pointer;font-weight:600">Connect →</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
+  setTimeout(()=>document.getElementById('gdClientIdInput')?.focus(), 100);
+}
+
+function gdSaveClientId(afterSetup){
+  const val = document.getElementById('gdClientIdInput')?.value.trim();
+  if(!val || !val.includes('apps.googleusercontent.com')){
+    const inp = document.getElementById('gdClientIdInput');
+    if(inp){ inp.classList.add('err'); setTimeout(()=>inp.classList.remove('err'),1500); }
+    document.getElementById('gdSetupStatus').textContent = '✕ Paste a valid Client ID ending in .apps.googleusercontent.com';
+    document.getElementById('gdSetupStatus').className = 'gd-status err';
+    return;
+  }
+  GD.clientId = val;
+  localStorage.setItem('gd_client_id', val);
+  document.getElementById('gdSetupModal')?.remove();
+  gdAuth(afterSetup);
+}
+
+// ── Auth (Google Identity Services token flow) ────────────────
+function gdAuth(afterAuth){
+  if(!GD.clientId){ showGDSetup(afterAuth); return; }
+  // If token still valid, proceed immediately
+  if(GD.accessToken && Date.now() < GD.tokenExpiry - 60000){
+    if(afterAuth) window[afterAuth]?.();
+    return;
+  }
+  // Load GIS if not loaded
+  if(!window.google?.accounts?.oauth2){
+    gdSetStatus('loading','⏳ Loading auth…');
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = () => gdAuth(afterAuth);
+    s.onerror = () => gdSetStatus('err','✕ Could not load Google auth (check network)');
+    document.head.appendChild(s);
+    return;
+  }
+  // Request token
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GD.clientId,
+    scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly',
+    callback: (resp) => {
+      if(resp.error){ gdSetStatus('err','✕ Auth failed: '+resp.error); return; }
+      GD.accessToken = resp.access_token;
+      GD.tokenExpiry = Date.now() + (resp.expires_in||3600) * 1000;
+      gdSetStatus('ok','✓ Connected to Google Drive');
+      updateGDButtons(true);
+      if(afterAuth) window[afterAuth]?.();
+    },
+  });
+  client.requestAccessToken();
+}
+
+function gdSetStatus(type, msg){ showToast(msg); }
+function updateGDButtons(connected){
+  ['gdImportBtn','gdExportBtn'].forEach(id=>{
+    const b = document.getElementById(id);
+    if(b) b.classList.toggle('connected', connected);
+  });
+}
+
+// ── Pick file from Drive ──────────────────────────────────────
+function gdPickFile(){
+  if(!GD.clientId){ showGDSetup('gdPickFile'); return; }
+  gdAuth('_gdPickFileAuthed');
+}
+window._gdPickFileAuthed = function(){
+  // Load Picker API
+  if(!window.google?.picker){
+    const s = document.createElement('script');
+    s.src = 'https://apis.google.com/js/api.js';
+    s.onload = () => gapi.load('picker', { callback: _gdPickFileAuthed });
+    document.head.appendChild(s);
+    return;
+  }
+  // Build picker
+  const picker = new google.picker.PickerBuilder()
+    .addView(new google.picker.DocsView()
+      .setMimeTypes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/vnd.ms-excel')
+      .setMode(google.picker.DocsViewMode.LIST))
+    .addView(new google.picker.DocsView(google.picker.ViewId.RECENTLY_PICKED))
+    .setOAuthToken(GD.accessToken)
+    .setDeveloperKey('')   // not needed for Drive scope
+    .setTitle('Select your Art Schedule spreadsheet')
+    .setCallback(async (data) => {
+      if(data.action !== google.picker.Action.PICKED) return;
+      const file = data.docs[0];
+      showToast(`⏳ Downloading ${file.name}…`);
+      try{
+        // Download file content
+        const resp = await fetch(
+          `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,
+          { headers: { Authorization: 'Bearer ' + GD.accessToken } }
+        );
+        if(!resp.ok) throw new Error('HTTP '+resp.status);
+        const blob = await resp.blob();
+        const fileObj = new File([blob], file.name, { type: blob.type });
+        await processFile(fileObj);
+      } catch(e){ showToast('✕ Download failed: '+e.message); }
+    })
+    .build();
+  picker.setVisible(true);
+};
+
+// ── Export sync patch to Drive ────────────────────────────────
+function gdExportFile(){
+  if(!GD.clientId){ showGDSetup('gdExportFile'); return; }
+  gdAuth('_gdExportAuthed');
+}
+window._gdExportAuthed = function(){
+  if(!tasks.length){ alert('No tasks to export.'); return; }
+
+  // Build CSV content (same as sync patch)
+  function csv(v){ const s=String(v==null?'':v); return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s; }
+  const patchable = tasks.filter(t=>t.j&&t.j.trim());
+  const unmatched = tasks.filter(t=>!t.j||!t.j.trim());
+  const cols = ['Jira Ticket','Artist','Task Title','Status (Gantt)','Priority','Start Date (Gantt)','Due Date (Gantt)'];
+  const lines = [cols.map(csv).join(',')];
+  patchable.forEach(t=>{ lines.push([t.j,t.a,t.t,ST[t.st]?.label||t.st,t.p,t.s||'',t.e||''].map(csv).join(',')); });
+  if(unmatched.length){
+    lines.push('');
+    lines.push([`# ${unmatched.length} tasks have no Jira ticket`].map(csv).join(','));
+    unmatched.forEach(t=>{ lines.push(['',t.a,t.t,ST[t.st]?.label||t.st,t.p,t.s||'',t.e||''].map(csv).join(',')); });
+  }
+  const csvContent = '\uFEFF' + lines.join('\r\n');
+  const fname = `Gantt_SyncPatch_${TODAY.toISOString().slice(0,10)}.csv`;
+
+  if(GD.lastSavedFileId){
+    // Update existing file
+    gdUpload('PATCH', GD.lastSavedFileId, fname, csvContent);
+  } else {
+    gdUpload('POST', null, fname, csvContent);
+  }
+};
+
+async function gdUpload(method, fileId, fname, content){
+  showToast('⏳ Saving to Google Drive…');
+  const url = fileId
+    ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`
+    : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+
+  const boundary = 'gantt_boundary_' + Date.now();
+  const meta = JSON.stringify({ name: fname, mimeType: 'text/csv' });
+  const body = [
+    '--' + boundary,
+    'Content-Type: application/json; charset=UTF-8',
+    '',
+    meta,
+    '--' + boundary,
+    'Content-Type: text/csv; charset=UTF-8',
+    '',
+    content,
+    '--' + boundary + '--'
+  ].join('\r\n');
+
+  try{
+    const resp = await fetch(url, {
+      method,
+      headers: {
+        Authorization: 'Bearer ' + GD.accessToken,
+        'Content-Type': `multipart/related; boundary=${boundary}`,
+      },
+      body,
+    });
+    if(!resp.ok) throw new Error('HTTP '+resp.status+' '+await resp.text());
+    const json = await resp.json();
+    GD.lastSavedFileId = json.id;
+    GD.lastSavedFileName = json.name;
+    localStorage.setItem('gd_last_file_id', json.id);
+    localStorage.setItem('gd_last_file_name', json.name);
+    showToast(`✅ Saved "${json.name}" to Google Drive`);
+    updateGDButtons(true);
+  } catch(e){
+    showToast('✕ Drive save failed: '+e.message);
+    console.error(e);
+  }
+}
+
+// ── Restore connection on load if we have a saved client ID ──
+if(GD.clientId){
+  updateGDButtons(false); // show buttons are configured but not yet authed
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// PTO / TIME OFF
+// ═══════════════════════════════════════════════════════════════
+function ptoBadge(name){
+  const entries = PTO[name]||[];
+  if(!entries.length) return `<div class="pto-badge empty" onclick="openPTO(event,'${name}')" title="Add time off">＋ PTO</div>`;
+  // Count upcoming PTO days
+  const today = TODAY.toISOString().slice(0,10);
+  const upcoming = entries.filter(p=>p.e>=today);
+  return `<div class="pto-badge" onclick="openPTO(event,'${name}')" title="Manage time off">🏖 ${entries.length} PTO${upcoming.length?' · '+upcoming.length+' upcoming':''}
+</div>`;
+}
+
+function openPTO(event, name){
+  event.stopPropagation();
+  document.getElementById('ptoModal')?.remove();
+  const entries = PTO[name]||[];
+  const m = document.createElement('div');
+  m.className='pto-modal'; m.id='ptoModal';
+  m.innerHTML=`
+    <div class="pto-box">
+      <div class="pto-head">
+        <div>
+          <h3>🏖 Time Off — ${name}</h3>
+          <p>Shown as hatched blocks on the timeline</p>
+        </div>
+        <button onclick="document.getElementById('ptoModal').remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#999;line-height:1">✕</button>
+      </div>
+      <div class="pto-body">
+        <div class="pto-list" id="ptoList"></div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7882A4;font-family:'IBM Plex Mono',monospace;margin-bottom:8px">Add time off</div>
+        <div class="pto-add-row">
+          <input type="date" id="ptoStart" placeholder="Start" onchange="ptoStartChanged(this.value)">
+          <span style="color:#7882A4;font-size:11px">→</span>
+          <input type="date" id="ptoEnd" placeholder="End">
+          <input type="text" id="ptoLabel" placeholder="Label (e.g. Vacation, Sick)" maxlength="40">
+          <button onclick="ptoAdd('${name}')" style="background:#6366F1;border:none;color:#fff;padding:7px 14px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600;white-space:nowrap">+ Add</button>
+        </div>
+        <div style="font-size:10px;color:#BCC2D4;margin-top:8px;font-family:'IBM Plex Mono',monospace">Single day: set start = end</div>
+      </div>
+      <div class="pto-foot">
+        <button onclick="document.getElementById('ptoModal').remove()" style="background:#18192A;border:none;color:#fff;padding:8px 18px;border-radius:5px;font-size:12px;cursor:pointer;font-weight:600">Done</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click',e=>{if(e.target===m)m.remove();});
+  ptoRenderList(name);
+  // Default start = today, end = tomorrow
+  const t=TODAY.toISOString().slice(0,10);
+  const tmr=addDays(t,1);
+  document.getElementById('ptoStart').value=t;
+  document.getElementById('ptoEnd').value=tmr;
+}
+
+function ptoRenderList(name){
+  const list=document.getElementById('ptoList');
+  if(!list) return;
+  const entries=PTO[name]||[];
+  if(!entries.length){ list.innerHTML='<div style="color:#BCC2D4;font-size:11px;font-family:IBM Plex Mono,monospace;margin-bottom:12px">No time off added yet</div>'; return; }
+  list.innerHTML=entries.map((p,i)=>`
+    <div class="pto-item" style="gap:6px;align-items:center">
+      <input type="date" value="${p.s}" data-pto-artist="${name}" data-pto-idx="${i}" data-pto-field="s"
+        style="border:1.5px solid #DDE2F0;border-radius:5px;padding:5px 7px;font-size:11px;font-family:'IBM Plex Mono',monospace;outline:none;color:#18192A;width:136px;flex-shrink:0"
+        onchange="ptoEditField(this)">
+      <span style="color:#BCC2D4;font-size:10px;flex-shrink:0">→</span>
+      <input type="date" value="${p.e}" data-pto-artist="${name}" data-pto-idx="${i}" data-pto-field="e"
+        style="border:1.5px solid #DDE2F0;border-radius:5px;padding:5px 7px;font-size:11px;font-family:'IBM Plex Mono',monospace;outline:none;color:#18192A;width:136px;flex-shrink:0"
+        onchange="ptoEditField(this)">
+      <input type="text" value="${p.label||''}" placeholder="Label" data-pto-artist="${name}" data-pto-idx="${i}" data-pto-field="label"
+        style="border:1.5px solid #DDE2F0;border-radius:5px;padding:5px 7px;font-size:11px;font-family:'IBM Plex Sans',sans-serif;outline:none;color:#18192A;flex:1;min-width:60px"
+        onchange="ptoEditField(this)" onblur="ptoEditField(this)">
+      <button class="pto-del" onclick="ptoDel('${name}',${i})" title="Remove">✕</button>
+    </div>`).join('');
+  list.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('focus',()=>inp.style.borderColor='#6366F1');
+    inp.addEventListener('blur', ()=>{ if(inp.type!=='text') inp.style.borderColor='#DDE2F0'; });
+  });
+}
+
+function ptoEditField(inp){
+  const name=inp.dataset.ptoArtist, i=parseInt(inp.dataset.ptoIdx), field=inp.dataset.ptoField;
+  if(!PTO[name]||!PTO[name][i]) return;
+  const val=inp.value.trim();
+  if((field==='s'||field==='e') && !val) return;
+  const entry=PTO[name][i];
+  const newS = field==='s' ? val : entry.s;
+  const newE = field==='e' ? val : entry.e;
+  if(newS > newE){ inp.style.borderColor='#EF4444'; showToast('End date must be on or after start date'); return; }
+  inp.style.borderColor='#DDE2F0';
+  PTO[name][i][field] = field==='label' ? (val||'PTO') : val;
+  PTO[name].sort((a,b)=>a.s.localeCompare(b.s));
+  render();
+  scheduleSave();
+}
+
+function ptoStartChanged(val){
+  if(!val) return;
+  const endInp = document.getElementById('ptoEnd');
+  if(!endInp) return;
+  // Only auto-update end if it's currently <= start
+  if(!endInp.value || endInp.value <= val)
+    endInp.value = addDays(val, 1);
+}
+
+function ptoAdd(name){
+  const s=document.getElementById('ptoStart')?.value;
+  const e=document.getElementById('ptoEnd')?.value;
+  const label=document.getElementById('ptoLabel')?.value.trim()||'PTO';
+  if(!s||!e){ showToast('Please set start and end dates'); return; }
+  if(s>e){ showToast('End date must be on or after start date'); return; }
+  if(!PTO[name]) PTO[name]=[];
+  PTO[name].push({s,e,label});
+  PTO[name].sort((a,b)=>a.s.localeCompare(b.s));
+  ptoRenderList(name);
+  render();
+  scheduleSave();
+  showToast(`🏖 Added PTO for ${name}`);
+  // Reset inputs
+  const t=TODAY.toISOString().slice(0,10);
+  if(document.getElementById('ptoStart')) document.getElementById('ptoStart').value=t;
+  if(document.getElementById('ptoEnd'))   document.getElementById('ptoEnd').value=addDays(t,1);
+  if(document.getElementById('ptoLabel')) document.getElementById('ptoLabel').value='';
+}
+
+function ptoDel(name,i){
+  if(!PTO[name]) return;
+  PTO[name].splice(i,1);
+  if(!PTO[name].length) delete PTO[name];
+  ptoRenderList(name);
+  render();
+  scheduleSave();
+}
+
+// ── AUTOSAVE ─────────────────────────────────────────────────────
+const SAVE_KEY  = 'artGantt_v1'; // fixed key — survives filename changes
+const SAVE_VER  = 'v5';
+let saveTimer   = null;
+let lastSaveStr = '';
+
+// Migrate data from any previous key names on first load
+(function(){
+  if(localStorage.getItem(SAVE_KEY)) return;
+  var oldKeys = ['artgantt_state','artGantt_state','artgantt_v1'];
+  for(var i=0;i<oldKeys.length;i++){
+    var v = localStorage.getItem(oldKeys[i]);
+    if(v){ localStorage.setItem(SAVE_KEY, v); break; }
+  }
+})();
+
+function getUIState(){
+  // Capture all calendar/config panel settings
+  const g = id => document.getElementById(id);
+  return {
+    rangeStart:  RANGE_START.toISOString().slice(0,10),
+    rangeEnd:    RANGE_END.toISOString().slice(0,10),
+    dayW:        DAY_W,
+    showArt:     g('showArt')?.checked    ?? true,
+    showBranch:  g('showBranch')?.checked ?? true,
+    showForce:   g('showForce')?.checked  ?? true,
+    showGuides:  g('showGuides')?.checked ?? true,
+    sortMode,
+  };
+}
+
+function applyUIState(ui){
+  if(!ui) return;
+  const g = id => document.getElementById(id);
+  // Date range
+  if(ui.rangeStart){ RANGE_START = new Date(ui.rangeStart); if(g('cfgStart')) g('cfgStart').value = ui.rangeStart; }
+  if(ui.rangeEnd)  { RANGE_END   = new Date(ui.rangeEnd);   if(g('cfgEnd'))   g('cfgEnd').value   = ui.rangeEnd;   }
+  // Zoom
+  if(ui.dayW){ DAY_W = ui.dayW; if(g('zoomSlider')){ g('zoomSlider').value = ui.dayW; g('zoomVal').textContent = parseFloat(ui.dayW).toFixed(1)+' px'; } }
+  // Checkboxes
+  if(g('showArt'))    g('showArt').checked    = ui.showArt    ?? true;
+  if(g('showBranch')) g('showBranch').checked = ui.showBranch ?? true;
+  if(g('showForce'))  g('showForce').checked  = ui.showForce  ?? true;
+  if(g('showGuides')) g('showGuides').checked = ui.showGuides ?? true;
+  // Sort
+  if(ui.sortMode) sortMode = ui.sortMode;
+}
+
+// ── CONNECTED SHEET ─────────────────────────────────────────────
+const SHEET_SYNC_KEY  = 'artGantt_sheetUrl';
+const SHEET_NAME_KEY  = 'artGantt_userName';
+let   sheetSyncUrl    = localStorage.getItem(SHEET_SYNC_KEY) || '';
+let   sheetUserName   = localStorage.getItem(SHEET_NAME_KEY) || '';
+let   sheetSyncTimer  = null;
+let   sheetSyncing    = false;
+
+function getSheetId(url){
+  // Returns truthy if url looks like a valid Apps Script web app URL or sheet URL
+  if(!url) return null;
+  return url.includes('script.google.com') || url.includes('spreadsheets/d') ? url : null;
+}
+
+function setConnectedSheet(url, name){
+  sheetSyncUrl  = (url||'').trim();
+  sheetUserName = (name||'').trim();
+  if(sheetSyncUrl) localStorage.setItem(SHEET_SYNC_KEY, sheetSyncUrl);
+  else             localStorage.removeItem(SHEET_SYNC_KEY);
+  if(sheetUserName) localStorage.setItem(SHEET_NAME_KEY, sheetUserName);
+  else              localStorage.removeItem(SHEET_NAME_KEY);
+  updateSheetBadge();
+}
+
+function updateSheetBadge(){
+  const btn = document.getElementById('connectSheetBtn');
+  if(!btn) return;
+  const id = getSheetId(sheetSyncUrl);
+  if(id && sheetUserName){
+    btn.textContent = `🔗 ${sheetUserName} ✓`;
+    btn.style.color = '#34D399';
+    btn.style.borderColor = 'rgba(52,211,153,.4)';
+    btn.style.background  = 'rgba(52,211,153,.1)';
+  } else if(id){
+    btn.textContent = '🔗 Sheet Connected';
+    btn.style.color = '#34D399';
+    btn.style.borderColor = 'rgba(52,211,153,.4)';
+    btn.style.background  = 'rgba(52,211,153,.1)';
+  } else {
+    btn.textContent = '🔗 Connect Sheet';
+    btn.style.color = 'rgba(255,255,255,.45)';
+    btn.style.borderColor = 'rgba(255,255,255,.15)';
+    btn.style.background  = 'none';
+  }
+  // Also refresh the last-synced indicator
+  fetchLastSyncedInfo();
+}
+
+function showConnectSheetModal(){
+  document.getElementById('connectSheetModal')?.remove();
+  const id = getSheetId(sheetSyncUrl);
+  const m = document.createElement('div');
+  m.id = 'connectSheetModal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:4000;display:flex;align-items:center;justify-content:center;padding:20px';
+  m.innerHTML = `
+    <div style="background:#0E1016;border:1px solid #2A2F45;border-radius:14px;max-width:480px;width:100%;font-family:'IBM Plex Sans',sans-serif;box-shadow:0 28px 80px rgba(0,0,0,.7)">
+      <div style="padding:18px 22px 14px;border-bottom:1px solid #1E2235;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#fff">🔗 Connect Google Sheet</div>
+          <div style="font-size:11px;color:#5A6280;margin-top:3px">Changes you make in the Gantt will auto-sync to the sheet</div>
+        </div>
+        <button onclick="document.getElementById('connectSheetModal').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#555">✕</button>
+      </div>
+      <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+        <div>
+          <label style="display:block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#3A4060;font-family:'IBM Plex Mono',monospace;margin-bottom:7px">Your Name</label>
+          <input id="connectNameInput" type="text" value="${sheetUserName}" placeholder="e.g. Susumu"
+            style="width:100%;border:1.5px solid ${sheetUserName?'#34A853':'#2A2F45'};border-radius:6px;padding:9px 12px;font-size:12px;font-family:'IBM Plex Sans',monospace;background:#060810;color:#C8CDE8;outline:none"
+            oninput="this.style.borderColor=this.value.trim()?'#4285F4':'#EF4444'">
+          <div style="font-size:9px;color:#3A4060;margin-top:4px;font-family:'IBM Plex Mono',monospace">Used to show who last edited the sheet</div>
+        </div>
+        <div>
+          <label style="display:block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#3A4060;font-family:'IBM Plex Mono',monospace;margin-bottom:7px">Google Sheet URL</label>
+          <input id="connectSheetInput" type="text" value="${sheetSyncUrl}" placeholder="https://docs.google.com/spreadsheets/d/…"
+            style="width:100%;border:1.5px solid ${id?'#34A853':'#2A2F45'};border-radius:6px;padding:9px 12px;font-size:11px;font-family:'IBM Plex Mono',monospace;background:#060810;color:#C8CDE8;outline:none"
+            oninput="this.style.borderColor=this.value.trim()?'#4285F4':'#2A2F45'">
+          <div style="font-size:9px;color:#3A4060;margin-top:4px;font-family:'IBM Plex Mono',monospace">Status · Start Date · Due Date auto-sync on every edit · matched by Artist + Jira</div>
+        </div>
+      </div>
+      <div style="padding:12px 22px;border-top:1px solid #1E2235;display:flex;justify-content:space-between;align-items:center">
+        ${id ? `<button onclick="setConnectedSheet('','');document.getElementById('connectSheetModal').remove();showToast('Sheet disconnected')" style="background:none;border:1px solid #2A2F45;color:#EF4444;padding:7px 14px;border-radius:5px;font-size:11px;cursor:pointer">Disconnect</button>` : '<div></div>'}
+        <div style="display:flex;gap:8px">
+          <button onclick="document.getElementById('connectSheetModal').remove()" style="background:none;border:1px solid #2A2F45;color:#5A6280;padding:7px 14px;border-radius:5px;font-size:12px;cursor:pointer">Cancel</button>
+          <button onclick="
+            const v=document.getElementById('connectSheetInput').value.trim();
+            const n=document.getElementById('connectNameInput').value.trim();
+            if(!n){ document.getElementById('connectNameInput').style.borderColor='#EF4444'; return; }
+            setConnectedSheet(v,n);
+            document.getElementById('connectSheetModal').remove();
+            showToast(v?'✅ Connected as '+n+' — changes will auto-sync':'Sheet disconnected');
+          " style="background:#4285F4;border:none;color:#fff;padding:8px 20px;border-radius:5px;font-size:12px;cursor:pointer;font-weight:700">Save</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
+  setTimeout(()=>document.getElementById('connectNameInput')?.focus(), 50);
+}
+
+// Read the last-synced info via a GET to the Apps Script
+async function fetchLastSyncedInfo(){
+  const el = document.getElementById('lastSyncedLabel');
+  if(!el) return;
+  if(!sheetSyncUrl){ el.style.display='none'; return; }
+  try {
+    const res = await fetch(sheetSyncUrl + '?action=lastSync');
+    if(!res.ok) return;
+    const data = await res.json();
+    if(data.syncLabel){
+      el.textContent = '👤 ' + data.syncLabel;
+      el.style.display = 'inline-block';
+    }
+  } catch(e){ /* silent */ }
+}
+
+async function syncToSheet(){
+  if(!sheetSyncUrl || sheetSyncing) return;
+  // sheetSyncUrl is now the Apps Script web app URL (not a sheet URL)
+  sheetSyncing = true;
+  setSaveStatus('saving', '⬆ syncing…');
+
+  const payload = tasks.filter(t=>t.j).map(t=>({
+    artist:    t.a,
+    jira:      t.j,
+    status:    ST[t.st]?.label || t.st,
+    startDate: t.s || '',
+    dueDate:   t.e || ''
+  }));
+  if(!payload.length){ sheetSyncing=false; setSaveStatus('saved','✓ autosaved'); return; }
+
+  const now = new Date();
+  const syncLabel = `${sheetUserName||'Unknown'} — ${now.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})} ${now.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}`;
+
+  try {
+    const res = await fetch(sheetSyncUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ tasks: payload, syncLabel })
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'Sync failed');
+
+    setSaveStatus('saved', '✓ saved + synced');
+    setTimeout(()=>setSaveStatus('saved','✓ autosaved'), 3000);
+    const el = document.getElementById('lastSyncedLabel');
+    if(el){ el.textContent='👤 '+syncLabel; el.style.display='inline-block'; }
+  } catch(e){
+    setSaveStatus('saved', '✓ saved (sheet sync failed)');
+    console.warn('Sheet sync failed:', e);
+  } finally {
+    sheetSyncing = false;
+  }
+}
+
+function autoSave(){
+  try{
+    const state = {
+      ver: SAVE_VER,
+      tasks,
+      artists,
+      milestones: MILESTONES,
+      pto: PTO,
+      ui: getUIState(),
+      savedAt: new Date().toISOString()
+    };
+    const str = JSON.stringify(state);
+    if(str === lastSaveStr){ setSaveStatus('saved','✓ autosaved'); return; }
+    localStorage.setItem(SAVE_KEY, str);
+    lastSaveStr = str;
+    setSaveStatus('saved', '✓ autosaved');
+    // If a sheet is connected, sync to it
+    if(getSheetId(sheetSyncUrl)) syncToSheet();
+  } catch(e){
+    setSaveStatus('saving', '⚠ save failed');
+    console.warn('Autosave failed:', e);
+  }
+}
+
+function scheduleSave(){
+  setSaveStatus('saving', '… saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(autoSave, 800); // debounce — save 800ms after last change
+}
+
+function setSaveStatus(cls, msg){
+  const el = document.getElementById('saveIndicator');
+  if(!el) return;
+  el.textContent = msg;
+  el.className   = 'save-indicator ' + cls;
+}
+
+function loadSavedState(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const state = JSON.parse(raw);
+    if(!state || state.ver !== SAVE_VER) return false;
+    if(!state.tasks?.length) return false;
+    tasks   = state.tasks;
+    artists = state.artists || [...new Set(tasks.map(t=>t.a))];
+    if(state.milestones?.length) MILESTONES = state.milestones;
+    if(state.pto) PTO = state.pto;
+    applyUIState(state.ui); // restore calendar settings, zoom, toggles
+    lastSaveStr = raw;
+    const ago = timeSince(state.savedAt);
+    setSaveStatus('restored', '↺ restored · saved '+ago);
+    setTimeout(()=>setSaveStatus('saved','✓ autosaved'), 4000);
+    return true;
+  } catch(e){
+    console.warn('Could not restore saved state:', e);
+    return false;
+  }
+}
+
+function timeSince(iso){
+  if(!iso) return 'recently';
+  const secs = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if(secs < 60)  return secs + 's ago';
+  if(secs < 3600) return Math.floor(secs/60) + 'm ago';
+  if(secs < 86400) return Math.floor(secs/3600) + 'h ago';
+  return Math.floor(secs/86400) + 'd ago';
+}
+
+function clearSavedState(){
+  if(!confirm('Clear autosaved data and reset to defaults?')) return;
+  localStorage.removeItem(SAVE_KEY);
+  location.reload();
+}
+
+// Patch saveHist to also trigger autosave
+const _origSaveHist = saveHist;
+saveHist = function(label){
+  _origSaveHist(label);
+  scheduleSave();
+};
+
+// Also save after imports
+const _origImportFromExportedCSV = importFromExportedCSV;
+importFromExportedCSV = function(rows){
+  _origImportFromExportedCSV(rows);
+  scheduleSave();
+};
+const _origImportFromJiraSheet = importFromJiraSheet;
+importFromJiraSheet = function(data){
+  _origImportFromJiraSheet(data);
+  scheduleSave();
+};
+
+// Save before page unload as a final safety net
+window.addEventListener('beforeunload', ()=>{ autoSave(); });
+
+
+// ═══════════════════════════════════════════════════════════════
+// MILESTONE EDITOR
+// ═══════════════════════════════════════════════════════════════
+function showMilestoneEditor(){
+  document.getElementById('msModal')?.remove();
+  const m = document.createElement('div');
+  m.className = 'ms-modal'; m.id = 'msModal';
+  m.innerHTML = `
+    <div class="ms-box">
+      <div class="ms-head">
+        <h3>🗓 Edit Milestone Dates</h3>
+        <p>Changes apply immediately and are autosaved. Dates must be YYYY-MM-DD.</p>
+      </div>
+      <div class="ms-body">
+        <table class="ms-table" id="msTable">
+          <thead>
+            <tr>
+              <th style="width:80px">Version</th>
+              <th class="col-art" style="width:130px">✂ Art Cutoff</th>
+              <th class="col-branch" style="width:130px">🌿 Branch Cut</th>
+              <th class="col-force" style="width:130px">⬆ Force Upgrade</th>
+              <th style="width:30px" title="Show/hide on timeline">👁</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="msTableBody"></tbody>
+        </table>
+        <button onclick="msAddRow()" style="background:none;border:1.5px dashed #DDE2F0;color:var(--acc);padding:6px 14px;border-radius:6px;font-size:11px;cursor:pointer;width:100%;margin-bottom:16px;font-family:'IBM Plex Sans',sans-serif;transition:.1s" onmouseover="this.style.background='#F4F6FF'" onmouseout="this.style.background='none'">+ Add version row</button>
+        <hr class="ms-sep">
+
+        <!-- PASTE FROM SPREADSHEET -->
+        <div class="ms-paste-label">📋 Paste or upload from spreadsheet</div>
+        <p class="ms-paste-hint">Either drop a CSV file, or select the columns in your release schedule (Version, Art Cutoff, Branch Cut, Force Upgrade), copy (⌘C) and paste below.</p>
+
+        <!-- CSV drop zone -->
+        <div id="msCsvDrop" style="border:2px dashed #DDE2F0;border-radius:8px;padding:14px;text-align:center;cursor:pointer;margin-bottom:10px;transition:.15s;position:relative"
+          onclick="if(event.target.tagName!=='INPUT') document.getElementById('msCsvInput').click()"
+          ondragover="event.preventDefault();this.style.borderColor='#6366F1';this.style.background='#F4F6FF'"
+          ondragleave="this.style.borderColor='#DDE2F0';this.style.background=''"
+          ondrop="event.preventDefault();this.style.borderColor='#DDE2F0';this.style.background='';msCsvLoad(event.dataTransfer.files[0])">
+          <input type="file" id="msCsvInput" accept=".csv,.tsv,.txt" style="position:absolute;inset:0;opacity:0;cursor:pointer" onchange="msCsvLoad(this.files[0]);this.value=''" onclick="event.stopPropagation()">
+          <div style="font-size:18px;margin-bottom:2px">📂</div>
+          <div style="font-size:11px;font-weight:600;color:#7882A4">Drop CSV file here or click to browse</div>
+          <div style="font-size:10px;color:#BCC2D4;margin-top:2px">Export your release schedule as CSV from Google Sheets · File → Download → CSV</div>
+        </div>
+
+        <textarea class="ms-paste-area" id="msPasteArea" placeholder="0.409&#9;2026-03-27&#9;2026-04-10&#9;2026-04-29&#10;0.411&#9;2026-04-10&#9;2026-04-24&#9;2026-05-13&#10;…" style="height:100px" onpaste="setTimeout(()=>{ if(this.value.trim()) msPasteApply(); },50)"></textarea>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+          <button onclick="msPasteApply()" style="background:var(--acc);border:none;color:#fff;padding:7px 16px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600">Apply pasted data</button>
+          <span style="font-size:10px;color:#BCC2D4;font-family:'IBM Plex Mono',monospace">Or just paste (⌘V) — auto-applies</span>
+        </div>
+      </div>
+      <div class="ms-foot">
+        <span class="ms-foot-note" id="msSaveNote"></span>
+        <button onclick="document.getElementById('msModal').remove()" style="background:none;border:1px solid #DDE2F0;color:#7882A4;padding:7px 16px;border-radius:5px;font-size:12px;cursor:pointer">Cancel</button>
+        <button onclick="msSave()" style="background:#18192A;border:none;color:#fff;padding:8px 20px;border-radius:5px;font-size:12px;cursor:pointer;font-weight:600">✓ Save & Apply</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
+  msRenderTable();
+}
+
+function msRenderTable(){
+  const tbody = document.getElementById('msTableBody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  MILESTONES.forEach((ms, i)=>{
+    const hidden = ms.hidden === true;
+    const tr = document.createElement('tr');
+    if(hidden) tr.classList.add('ms-hidden');
+    tr.innerHTML = `
+      <td><input value="${ms.ver}" data-i="${i}" data-f="ver" oninput="msField(this)" placeholder="0.xxx" style="font-weight:600"></td>
+      <td><input value="${ms.art}" data-i="${i}" data-f="art" oninput="msField(this)" class="art" placeholder="YYYY-MM-DD"></td>
+      <td><input value="${ms.branch}" data-i="${i}" data-f="branch" oninput="msField(this)" class="branch" placeholder="YYYY-MM-DD"></td>
+      <td><input value="${ms.force}" data-i="${i}" data-f="force" oninput="msField(this)" class="force" placeholder="YYYY-MM-DD"></td>
+      <td><button class="ms-eye ${hidden?'hidden':''}" onclick="msToggleVis(${i})" title="${hidden?'Show on timeline':'Hide from timeline'}">${hidden?'🙈':'👁'}</button></td>
+      <td><button class="del-btn" onclick="msDeleteRow(${i})" title="Remove this version">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function msToggleVis(i){
+  if(!MILESTONES[i]) return;
+  MILESTONES[i].hidden = !MILESTONES[i].hidden;
+  msRenderTable();
+  render(); // update timeline immediately
+  scheduleSave();
+  document.getElementById('msSaveNote').textContent = '● unsaved changes';
+}
+
+function msField(inp){
+  const i = parseInt(inp.dataset.i);
+  const f = inp.dataset.f;
+  if(MILESTONES[i]) MILESTONES[i][f] = inp.value.trim();
+  document.getElementById('msSaveNote').textContent = '● unsaved changes';
+}
+
+function msAddRow(){
+  MILESTONES.push({ver:'', art:'', branch:'', force:''});
+  msRenderTable();
+  // Focus the new version input
+  const rows = document.querySelectorAll('#msTableBody tr');
+  rows[rows.length-1]?.querySelector('input')?.focus();
+}
+
+function msDeleteRow(i){
+  MILESTONES.splice(i, 1);
+  msRenderTable();
+  document.getElementById('msSaveNote').textContent = '● unsaved changes';
+}
+
+function msPasteApply(){
+  const raw = document.getElementById('msPasteArea')?.value.trim();
+  if(!raw){ return; }
+
+  const parseDate = s => {
+    if(!s||s==='N/A'||s==='-'||s==='TBD') return '';
+    s = s.trim();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    const mdy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if(mdy){
+      const y = mdy[3].length===2 ? '20'+mdy[3] : mdy[3];
+      return `${y}-${mdy[1].padStart(2,'0')}-${mdy[2].padStart(2,'0')}`;
+    }
+    const d = new Date(s);
+    if(!isNaN(d)) return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return '';
+  };
+
+  // Full CSV parser that handles quoted multiline fields
+  function parseCSVFull(text){
+    const rows=[]; let row=[], cur='', inQ=false;
+    for(let i=0;i<text.length;i++){
+      const ch=text[i], nx=text[i+1];
+      if(ch==='"'){
+        if(inQ && nx==='"'){ cur+='"'; i++; }
+        else inQ=!inQ;
+      } else if((ch===',' || ch==='\t') && !inQ){ row.push(cur); cur=''; }
+      else if(ch==='\r'&&nx==='\n'&&!inQ){ row.push(cur); rows.push(row); row=[]; cur=''; i++; }
+      else if((ch==='\n'||ch==='\r')&&!inQ){ row.push(cur); rows.push(row); row=[]; cur=''; }
+      else cur+=ch;
+    }
+    if(cur||row.length){ row.push(cur); rows.push(row); }
+    return rows;
+  }
+
+  const allRows = parseCSVFull(raw);
+  const parsed = [];
+  if(!allRows.length) return;
+
+  // Flatten each cell (remove internal newlines, trim)
+  const flatRows = allRows.map(r => r.map(c => c.replace(/\n|\r/g,' ').trim().toLowerCase()));
+
+  // Find header row — first row containing recognizable column names
+  let headerIdx = -1, iVer=-1, iArt=-1, iBranch=-1, iForce=-1;
+  for(let ri=0; ri<Math.min(3, flatRows.length); ri++){
+    const r = flatRows[ri];
+    if(r.some(c=>c.includes('release')||c.includes('version')||c.includes('branch cut')||c.includes('force upgrade'))){
+      headerIdx = ri;
+      r.forEach((c,i)=>{
+        if(iVer<0    && (c.includes('release')||c.includes('version')||c==='ver')) iVer=i;
+        if(c.includes('art cutoff'))                                                iArt=i;
+        else if(iArt<0 && c.includes('art req'))                                   iArt=i;
+        if(c.includes('branch cut'))                                               iBranch=i;
+        else if(iBranch<0 && c==='branch')                                         iBranch=i;
+        if(c.includes('force upgrade'))                                            iForce=i;
+        else if(iForce<0 && c.includes('force'))                                   iForce=i;
+      });
+      break;
+    }
+  }
+
+  const useHeader = headerIdx>=0 && iVer>=0;
+  const startRow  = useHeader ? headerIdx+1 : 0;
+  if(!useHeader){ iVer=0; iArt=1; iBranch=2; iForce=3; }
+
+  for(let ri=startRow; ri<allRows.length; ri++){
+    const row = allRows[ri];
+    const ver = (row[iVer]||'').replace(/\n|\r/g,' ').trim();
+    if(!ver) continue;
+    const getCell = i => i>=0&&i<row.length ? (row[i]||'').replace(/\n|\r/g,' ').trim() : '';
+    const art    = parseDate(getCell(iArt));
+    const branch = parseDate(getCell(iBranch));
+    const force  = parseDate(getCell(iForce));
+    if(!art && !branch && !force) continue;
+    parsed.push({ver, art, branch, force});
+  }
+
+  if(!parsed.length){
+    document.getElementById('msSaveNote').textContent = '✕ Could not parse any rows — check format';
+    return;
+  }
+
+  // Merge with existing milestones by version number
+  const existing = {};
+  MILESTONES.forEach(ms => { existing[ms.ver] = ms; });
+  parsed.forEach(p => {
+    if(existing[p.ver]){
+      if(p.art)    existing[p.ver].art    = p.art;
+      if(p.branch) existing[p.ver].branch = p.branch;
+      if(p.force)  existing[p.ver].force  = p.force;
+    } else {
+      existing[p.ver] = p;
+    }
+  });
+  MILESTONES = Object.values(existing).sort((a,b)=>String(a.ver).localeCompare(String(b.ver)));
+  msRenderTable();
+  document.getElementById('msPasteArea').value = '';
+  document.getElementById('msSaveNote').textContent = `✓ Parsed ${parsed.length} version(s) — click Save & Apply`;
+}
+
+
+function msCsvLoad(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    document.getElementById('msPasteArea').value = text;
+    msPasteApply();
+    // Update drop zone to show success
+    const zone = document.getElementById('msCsvDrop');
+    if(zone) zone.innerHTML = `<div style="font-size:18px">✅</div><div style="font-size:11px;font-weight:600;color:#34A853">${file.name} loaded</div>`;
+  };
+  reader.onerror = () => showToast('Could not read file');
+  reader.readAsText(file);
+}
+async function msScanImage(event){
+  const file = event?.target?.files?.[0];
+
+  // Set scanning state
+  const zone   = document.getElementById('msImgZone');
+  const status = document.getElementById('msScanStatus');
+  const dropTxt= document.getElementById('msImgDropText');
+  if(zone)    { zone.classList.add('scanning'); }
+  if(dropTxt) { dropTxt.style.display='none'; }
+  if(status)  { status.textContent='⏳ Scanning image…'; status.className='ms-scan-status scanning'; }
+
+  try{
+    // Convert to base64
+    const base64 = await new Promise((res,rej)=>{
+      const r = new FileReader();
+      r.onload  = ()=> res(r.result.split(',')[1]);
+      r.onerror = ()=> rej(new Error('Read failed'));
+      r.readAsDataURL(file);
+    });
+
+    const mediaType = file.type || 'image/png';
+
+    // Call Claude API with vision
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: base64 }
+            },
+            {
+              type: 'text',
+              text: `This is a screenshot of a game release schedule spreadsheet. Extract the milestone dates and return ONLY a JSON array, nothing else. No explanation, no markdown, no code fences — just raw JSON.
+
+Format:
+[
+  {"ver":"0.409","art":"2026-03-27","branch":"2026-04-10","force":"2026-04-29"},
+  ...
+]
+
+Rules:
+- "ver" = version number (like 0.409, 0.411 etc)
+- "art" = Art Cutoff date in YYYY-MM-DD
+- "branch" = Branch Cut date in YYYY-MM-DD  
+- "force" = Force Upgrade date in YYYY-MM-DD
+- If a date is missing or unclear, use empty string ""
+- Convert any date format (M/D/YYYY, MM/DD/YY, etc) to YYYY-MM-DD
+- Only include rows that have a version number`
+            }
+          ]
+        }]
+      })
+    });
+
+    if(!resp.ok){
+      const err = await resp.json().catch(()=>({}));
+      throw new Error(err?.error?.message || 'API error '+resp.status);
+    }
+
+    const data = await resp.json();
+    const text = data.content?.find(b=>b.type==='text')?.text?.trim();
+    if(!text) throw new Error('No response from AI');
+
+    // Parse JSON
+    const clean = text.replace(/^```json|^```|```$/gm,'').trim();
+    const parsed = JSON.parse(clean);
+    if(!Array.isArray(parsed) || !parsed.length) throw new Error('No milestone data found in image');
+
+    // Normalise dates
+    parsed.forEach(ms=>{
+      ['art','branch','force'].forEach(f=>{
+        if(ms[f] && !/^\d{4}-\d{2}-\d{2}$/.test(ms[f])){
+          const d = new Date(ms[f]);
+          if(!isNaN(d)) ms[f] = d.toISOString().slice(0,10);
+        }
+      });
+    });
+
+    // Merge into existing MILESTONES by version number (don't replace — accumulate)
+    let added = 0, updated = 0;
+    parsed.forEach(incoming => {
+      const existing = MILESTONES.find(ms => ms.ver === incoming.ver);
+      if(existing){
+        // Update only non-empty fields from the new scan
+        ['art','branch','force'].forEach(f => {
+          if(incoming[f]) existing[f] = incoming[f];
+        });
+        updated++;
+      } else {
+        MILESTONES.push(incoming);
+        added++;
+      }
+    });
+    // Sort by version number
+    MILESTONES.sort((a,b) => parseFloat(a.ver||0) - parseFloat(b.ver||0));
+    msRenderTable();
+
+    const summary = [added && `${added} added`, updated && `${updated} updated`].filter(Boolean).join(', ');
+    if(status){ status.textContent = `✓ Scan complete — ${summary}. Paste another screenshot or click Save & Apply`; status.className='ms-scan-status ok'; }
+    if(zone){ zone.classList.remove('scanning'); }
+    // Reset drop zone so it's ready for next paste
+    if(dropTxt){ dropTxt.style.display=''; }
+    const preview = document.getElementById('msImgPreview');
+    if(preview){ preview.style.display='none'; }
+    document.getElementById('msSaveNote').textContent = '● unsaved changes';
+
+  } catch(err){
+    console.error('Scan error:', err);
+    if(status){ status.textContent = '✕ '+err.message; status.className='ms-scan-status err'; }
+    if(zone){ zone.classList.remove('scanning'); }
+    if(dropTxt){ dropTxt.style.display=''; }
+  }
+
+  // Reset file input so same file can be re-dropped
+  if(event?.target) event.target.value='';
+}
+
+// Drag-and-drop onto the image zone
+document.addEventListener('DOMContentLoaded', ()=>{
+  // We use event delegation since the modal is created dynamically
+});
+document.addEventListener('dragover', e=>{
+  if(document.getElementById('msImgZone') && e.target.closest('#msImgZone')){
+    e.preventDefault();
+    document.getElementById('msImgZone')?.classList.add('drag-over');
+  }
+});
+document.addEventListener('dragleave', e=>{
+  if(!e.relatedTarget?.closest('#msImgZone'))
+    document.getElementById('msImgZone')?.classList.remove('drag-over');
+});
+document.addEventListener('drop', e=>{
+  const zone = document.getElementById('msImgZone');
+  if(!zone || !e.target.closest('#msImgZone')) return;
+  e.preventDefault();
+  zone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if(file && file.type.startsWith('image/')){
+    msScanImage({ target: { files: [file], value: '' } });
+  }
+});
+
+// ── Ctrl/Cmd+V paste image anywhere when milestone editor is open ──
+document.addEventListener('paste', e=>{
+  if(!document.getElementById('msImgZone')) return; // editor not open
+  const items = [...(e.clipboardData?.items||[])];
+  const imgItem = items.find(it=>it.type.startsWith('image/'));
+  if(!imgItem) return; // not an image paste — let normal text paste work in inputs
+  e.preventDefault();
+  const file = imgItem.getAsFile();
+  if(file) msScanImage({ target: { files: [file], value: '' } });
+});
+
+function msSave(){
+  // Filter out incomplete rows
+  MILESTONES = MILESTONES.filter(ms=>ms.ver && (ms.art||ms.branch||ms.force));
+  render();
+  scheduleSave();
+  document.getElementById('msModal')?.remove();
+  showToast(`✓ Milestones updated — ${MILESTONES.length} versions`);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+const wasRestored = loadSavedState();
+render();
+if(!wasRestored) saveHist('Initial state');
+else             saveHist('Restored session');
+setTimeout(scrollToToday, 150);
+setTimeout(updateSheetBadge, 100);
+
+// ── PASTE SYNC ────────────────────────────────────────────────────
+
+function copyCSVText(){
+  if(!tasks.length){ showToast('No tasks'); return; }
+  function q(v){ var s=String(v==null?'':v); return (s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)?'"'+s.replace(/"/g,'""')+'"':s; }
+  var lines=[['Artist','Jira Ticket','Task Title','Status','Start Date','Due Date'].join(',')];
+  artists.forEach(function(name){
+    atasks(name).forEach(function(t){
+      lines.push([t.a,t.j||'',t.t,(ST[t.st]&&ST[t.st].label)||t.st||'',fmtD(t.s),fmtD(t.e)].map(q).join(','));
+    });
+  });
+  var text=lines.join('\n');
+  try{
+    navigator.clipboard.writeText(text).then(function(){
+      var btn=document.getElementById('copyCSVBtn');
+      if(btn){ btn.textContent='✅ Copied!'; btn.style.background='#34A853'; btn.style.color='#fff'; btn.style.border='1.5px solid #34A853'; }
+      setTimeout(function(){ if(btn){ btn.textContent='📋 Copy CSV'; btn.style.background='none'; btn.style.color='#1a73e8'; btn.style.border='1.5px solid #1a73e8'; }},2500);
+    });
+  }catch(e){
+    var ta=document.createElement('textarea'); ta.value=text; ta.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('CSV copied!');
+  }
+}
+
+function showPasteSyncModal(){
+  document.getElementById('pasteSyncModal') && document.getElementById('pasteSyncModal').remove();
+  var d=document.createElement('div');
+  d.id='pasteSyncModal';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center';
+  d.innerHTML='<div style="background:#fff;border-radius:14px;padding:28px 32px;max-width:560px;width:100%;font-family:IBM Plex Sans,sans-serif;box-shadow:0 24px 64px rgba(0,0,0,.3)">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
+    +'<h2 style="margin:0;font-size:18px;color:#1a1a2e">⚡ Paste Sync Setup</h2>'
+    +'<button onclick="document.getElementById(\'pasteSyncModal\').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888">&times;</button>'
+    +'</div>'
+    +'<div style="background:#f0f7ff;border-radius:8px;padding:14px 16px;font-size:13px;color:#1a1a2e;line-height:1.8;margin-bottom:20px">'
+    +'<b>How it works:</b><br>'
+    +'1. Click <b>📋 Copy CSV</b> in Status Update<br>'
+    +'2. In Google Sheet: menu <b>Gantt Sync &rarr; Sync Now</b><br>'
+    +'3. Paste the CSV text &rarr; click Sync<br>'
+    +'<span style="color:#666;font-size:12px">First time only: install the script below</span>'
+    +'</div>'
+    +'<div style="margin-bottom:8px;font-size:12px;font-weight:600;color:#555">APPS SCRIPT (one-time setup)</div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:6px">'
+    +'<button onclick="copyPasteScript()" id="copyPasteBtn" style="background:#1a73e8;border:none;color:#fff;padding:8px 18px;border-radius:7px;font-size:13px;cursor:pointer;font-weight:600">📋 Copy Script</button>'
+    +'<div style="font-size:11px;color:#888;align-self:center">Then: Extensions &rarr; Apps Script &rarr; paste &rarr; Save &rarr; reload Sheet</div>'
+    +'</div>'
+    +'</div>';
+  document.body.appendChild(d);
+}
+
+function copyPasteScript(){
+  var script="function onOpen(){\n  SpreadsheetApp.getUi().createMenu('Gantt Sync')\n    .addItem('Sync Now...','showPasteDialog')\n    .addToUi();\n}\n\nfunction showPasteDialog(){\n  var html=HtmlService.createHtmlOutput(\n    '<style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;padding:14px;margin:0}'\n    +'p{font-size:12px;color:#555;margin:0 0 8px}'\n    +'textarea{width:100%;height:200px;font-size:11px;padding:8px;border:1.5px solid #ddd;border-radius:6px;resize:vertical}'\n    +'button{margin-top:10px;padding:9px;background:#34A853;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;width:100%}'\n    +'#msg{margin-top:8px;font-size:12px}</style>'\n    +'<p>Gantt: <b>Status Update > Copy CSV</b>, paste below:</p>'\n    +'<textarea id=\"d\" placeholder=\"Paste CSV here...\"></textarea>'\n    +'<button onclick=\"run()\">Sync Now</button>'\n    +'<div id=\"msg\"></div>'\n    +'<script>function run(){'\n    +'  document.getElementById(\"msg\").innerHTML=\"Syncing...\";'\n    +'  google.script.run'\n    +'    .withSuccessHandler(function(r){document.getElementById(\"msg\").innerHTML=\"<span style=color:green>\"+r+\"</span>\";})'\n    +'    .withFailureHandler(function(e){document.getElementById(\"msg\").innerHTML=\"<span style=color:red>\"+e.message+\"</span>\";})'\n    +'    .syncFromCSV(document.getElementById(\"d\").value);'\n    +'}<\\/script>'\n  ).setWidth(440).setHeight(340);\n  SpreadsheetApp.getUi().showModalDialog(html,'Gantt Sync');\n}\n\nfunction syncFromCSV(csvText){\n  var lines=csvText.trim().split('\\n');\n  if(lines.length<2) throw new Error('No data in CSV.');\n  function parseRow(line){\n    var cols=[],cur='',inQ=false;\n    for(var i=0;i<line.length;i++){\n      var ch=line[i];\n      if(ch=='\"'){if(inQ&&line[i+1]=='\"'){cur+='\"';i++;}else inQ=!inQ;}\n      else if(ch==','&&!inQ){cols.push(cur);cur='';}\n      else cur+=ch;\n    }\n    cols.push(cur); return cols;\n  }\n  var hdr=parseRow(lines[0]).map(function(h){return h.replace(/\"/g,'').trim().toLowerCase();});\n  var iA=hdr.indexOf('artist'),iJ=hdr.indexOf('jira ticket'),iT=hdr.indexOf('task title');\n  var iS=hdr.indexOf('status'),iSD=hdr.indexOf('start date'),iD=hdr.indexOf('due date');\n  if(iJ<0||iS<0) throw new Error('Invalid CSV. Use Copy CSV from Gantt.');\n  var SM={'Done':'Done','In Progress':'In Progress','Not Started':'Not Started',\n    'Awaiting Feedback':'Awaiting Feedback','TPCi Review':'TPCi Review',\n    'Art Internal':'Art Internal','On Hold':'On Hold','Cancelled':'Cancelled',\n    'V1 Done, V2 To Do':'V1 Done, V2 To Do','Need Alignment':'Need Alignment'};\n  var gMap={},gList=[];\n  for(var i=1;i<lines.length;i++){\n    var r=parseRow(lines[i]);\n    if(!r||r.length<4) continue;\n    var jira=(r[iJ]||'').trim();\n    var e={jira:jira,artist:(r[iA]||'').trim(),\n           task:iT>=0?(r[iT]||'').trim():'',\n           status:iS>=0?(r[iS]||'').trim():'',\n           start:iSD>=0?(r[iSD]||'').trim():'',\n           due:iD>=0?(r[iD]||'').trim():''};\n    if(!e.artist) continue;\n    if(jira) gMap[jira]=e;\n    gList.push(e);\n  }\n  var JCOL=2,SC=6,STC=10,DC=11,AC=1,TC=9,DR=8;\n  var sh=SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Current Schedule');\n  var nr=sh.getLastRow()-DR+1;\n  var data=sh.getRange(DR,1,nr,DC).getValues();\n  var sj={},updated=0,sCh=[],sdCh=[],dCh=[];\n  for(var i=0;i<data.length;i++){\n    var row=DR+i;\n    var rj=String(data[i][JCOL-1]||'').trim();\n    if(!rj) continue;\n    sj[rj]=row;\n    var g=gMap[rj];\n    if(!g) continue;\n    if(g.status) sCh.push([row,SM[g.status]||g.status]);\n    if(g.start) sdCh.push([row,pd(g.start)]);\n    if(g.due) dCh.push([row,pd(g.due)]);\n    updated++;\n  }\n  sCh.forEach(function(x){sh.getRange(x[0],SC).setValue(x[1]);});\n  sdCh.forEach(function(x){var r=sh.getRange(x[0],STC);r.setValue(x[1]);r.setNumberFormat('M/d/yy');});\n  dCh.forEach(function(x){var r=sh.getRange(x[0],DC);r.setValue(x[1]);r.setNumberFormat('M/d/yy');});\n  var newT=[],added=0;\n  gList.forEach(function(t){\n    if(!t.jira){newT.push(t);return;}\n    if(!sj[t.jira]) newT.push(t);\n  });\n  if(newT.length>0){\n    var app=[];\n    newT.forEach(function(t){\n      var row=new Array(DC).fill('');\n      row[AC-1]=t.artist;row[JCOL-1]=t.jira||'';row[TC-1]=t.task;\n      row[SC-1]=SM[t.status]||t.status||'';\n      row[STC-1]=t.start?pd(t.start):'';row[DC-1]=t.due?pd(t.due):'';\n      app.push(row);added++;\n    });\n    var as=sh.getLastRow()+1;\n    sh.getRange(as,1,app.length,DC).setValues(app);\n    sh.getRange(as,STC,app.length,1).setNumberFormat('M/d/yy');\n    sh.getRange(as,DC,app.length,1).setNumberFormat('M/d/yy');\n  }\n  return 'Done! Updated '+updated+' rows'+(added?' + added '+added+' new tasks.':'.');\n}\n\nfunction pd(s){\n  if(!s||s==='') return '';\n  var p=String(s).trim().split('-');\n  if(p.length===3) return new Date(+p[0],+p[1]-1,+p[2],12,0,0);\n  var d=new Date(s);\n  return isNaN(d)?'':new Date(d.getFullYear(),d.getMonth(),d.getDate(),12,0,0);\n}";
+  try{
+    navigator.clipboard.writeText(script).then(function(){
+      var btn=document.getElementById("copyPasteBtn");
+      if(btn){btn.textContent="Copied!";setTimeout(function(){btn.textContent="Copy Script";},2500);}
+    });
+  }catch(e){
+    var ta=document.createElement("textarea");ta.value=script;ta.style.cssText="position:fixed;opacity:0";
+    document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
+    showToast("Script copied!");
+  }
+}
+
+
+// ── EXPORT XLSX ──────────────────────────────────────────────────
+async function exportXLSX(){
+  if(!tasks.length){ showToast('No tasks to export.'); return; }
+
+  // Load SheetJS if not already present
+  if(typeof XLSX==='undefined'){
+    showToast('⏳ Loading Excel library…');
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload=res; s.onerror=()=>rej(new Error('Failed to load SheetJS'));
+      document.head.appendChild(s);
+    }).catch(err=>{ alert('Could not load Excel library.\n'+err.message); return; });
+  }
+  if(typeof XLSX==='undefined') return;
+
+  const wb = XLSX.utils.book_new();
+
+  // ── Sheet 1: Current Schedule (mirror of source spreadsheet columns) ──
+  const scheduleData = [
+    ['Artist','Jira Ticket','Pod','Priority','Status','Task Title','Start Date','Due / End Date','Notes']
+  ];
+  artists.forEach(name=>{
+    atasks(name).forEach(task=>{
+      scheduleData.push([
+        task.a,
+        task.j || '',
+        task.pod || '',
+        task.p,
+        ST[task.st]?.label || task.st,
+        task.t,
+        task.s ? new Date(task.s+'T12:00:00') : '',
+        task.e ? new Date(task.e+'T12:00:00') : '',
+        task.n || ''
+      ]);
+    });
+    scheduleData.push([]); // blank row between artists
+  });
+  const ws1 = XLSX.utils.aoa_to_sheet(scheduleData);
+
+  // Column widths
+  ws1['!cols'] = [
+    {wch:20},{wch:14},{wch:16},{wch:8},{wch:22},{wch:50},{wch:13},{wch:13},{wch:30}
+  ];
+
+  // Format date columns (G & H = indices 6 & 7)
+  const range1 = XLSX.utils.decode_range(ws1['!ref']);
+  for(let R=1; R<=range1.e.r; R++){
+    ['G','H'].forEach(col=>{
+      const addr = col+''+(R+1);
+      if(ws1[addr] && ws1[addr].t==='d'){
+        ws1[addr].z = 'm/d/yy';
+      }
+    });
+  }
+  XLSX.utils.book_append_sheet(wb, ws1, 'Current Schedule');
+
+  // ── Sheet 2: Status Summary (lightweight, by artist) ──
+  const summaryData = [['Artist','Task Title','Jira Ticket','Status','Start Date','Due Date']];
+  artists.forEach(name=>{
+    atasks(name).forEach(task=>{
+      summaryData.push([
+        task.a,
+        task.t,
+        task.j || '',
+        ST[task.st]?.label || task.st,
+        task.s ? new Date(task.s+'T12:00:00') : '',
+        task.e ? new Date(task.e+'T12:00:00') : ''
+      ]);
+    });
+  });
+  const ws2 = XLSX.utils.aoa_to_sheet(summaryData);
+  ws2['!cols'] = [{wch:20},{wch:50},{wch:14},{wch:22},{wch:13},{wch:13}];
+  const range2 = XLSX.utils.decode_range(ws2['!ref']);
+  for(let R=1; R<=range2.e.r; R++){
+    ['E','F'].forEach(col=>{
+      const addr = col+''+(R+1);
+      if(ws2[addr] && ws2[addr].t==='d') ws2[addr].z = 'm/d/yy';
+    });
+  }
+  XLSX.utils.book_append_sheet(wb, ws2, 'Status Summary');
+
+  // ── Sheet 3: PTO Schedule ──
+  const ptoData = [['Artist','Label','Start Date','End Date','Days']];
+  artists.forEach(name=>{
+    const entries = PTO[name]||[];
+    entries.forEach(p=>{
+      const start = parseLocalDate(p.s);
+      const end   = parseLocalDate(p.e);
+      const days  = Math.round((end-start)/86400000)+1;
+      ptoData.push([
+        name,
+        p.label||'PTO',
+        p.s ? new Date(p.s+'T12:00:00') : '',
+        p.e ? new Date(p.e+'T12:00:00') : '',
+        days
+      ]);
+    });
+  });
+  const ws3 = XLSX.utils.aoa_to_sheet(ptoData);
+  ws3['!cols'] = [{wch:20},{wch:16},{wch:13},{wch:13},{wch:6}];
+  // Format date columns C & D
+  const range3 = XLSX.utils.decode_range(ws3['!ref']||'A1');
+  for(let R=1; R<=range3.e.r; R++){
+    ['C','D'].forEach(col=>{
+      const addr = col+(R+1);
+      if(ws3[addr] && ws3[addr].t==='d') ws3[addr].z = 'm/d/yy';
+    });
+  }
+  XLSX.utils.book_append_sheet(wb, ws3, 'PTO Schedule');
+
+  // Download
+  const date = TODAY.toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Art_Gantt_${date}.xlsx`);
+  showToast(`📊 Exported ${tasks.length} tasks + PTO to Excel`);
+}
+
+
+// ── UPDATE GOOGLE SHEET MODAL ────────────────────────────────────
+const SHEET_ID = '1Za6VOtrqpZAYeCKpAcUfri2adu0P8_2iOU9RSfOYmOg';
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
+
+function showUpdateSheetModal(){
+  document.getElementById('updateSheetModal')?.remove();
+
+  const withJira = tasks.filter(t=>t.j);
+  const skipped  = tasks.length - withJira.length;
+
+  const m = document.createElement('div');
+  m.id = 'updateSheetModal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:4000;display:flex;align-items:center;justify-content:center;padding:20px';
+  m.innerHTML = `
+    <div style="background:#0E1016;border:1px solid #2A2F45;border-radius:14px;max-width:520px;width:100%;font-family:'IBM Plex Sans',sans-serif;box-shadow:0 28px 80px rgba(0,0,0,.7)">
+      <div style="padding:18px 22px 14px;border-bottom:1px solid #1E2235;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#fff">⬆ Update Google Sheet</div>
+          <div style="font-size:11px;color:#5A6280;margin-top:3px">Updates Status · Start Date · Due Date for <strong style="color:#74AAFF">${withJira.length} tasks</strong> matched by Jira ticket${skipped>0?` · <span style="color:#3A4060">${skipped} without Jira skipped</span>`:''}</div>
+        </div>
+        <button onclick="document.getElementById('updateSheetModal').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#555;line-height:1">✕</button>
+      </div>
+      <div style="padding:18px 22px">
+        <label style="display:block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#3A4060;font-family:'IBM Plex Mono',monospace;margin-bottom:7px">Paste Google Sheet URL</label>
+        <input id="updateSheetUrlInput" type="text" placeholder="https://docs.google.com/spreadsheets/d/…"
+          style="width:100%;border:1.5px solid #2A2F45;border-radius:6px;padding:9px 12px;font-size:11px;font-family:'IBM Plex Mono',monospace;background:#060810;color:#C8CDE8;outline:none;transition:.15s"
+          oninput="this.style.borderColor=this.value.trim()?'#4285F4':'#2A2F45'">
+        <div style="font-size:9px;color:#3A4060;margin-top:6px;font-family:'IBM Plex Mono',monospace">Only rows matched by Jira ticket will be changed · all other columns stay untouched</div>
+        <div id="updateSheetStatus" style="margin-top:12px;display:none;padding:10px 12px;border-radius:7px;font-size:11px;line-height:1.7"></div>
+      </div>
+      <div style="padding:12px 22px;border-top:1px solid #1E2235;display:flex;justify-content:flex-end;gap:8px">
+        <button onclick="document.getElementById('updateSheetModal').remove()" style="background:none;border:1px solid #2A2F45;color:#5A6280;padding:7px 16px;border-radius:5px;font-size:12px;cursor:pointer">Cancel</button>
+        <button id="pushToSheetBtn" onclick="pushToSheet()" style="background:#4285F4;border:none;color:#fff;padding:8px 22px;border-radius:5px;font-size:12px;cursor:pointer;font-weight:700"${withJira.length===0?' disabled':''}>⬆ Update ${withJira.length} tasks</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
+  setTimeout(()=>document.getElementById('updateSheetUrlInput')?.focus(), 50);
+}
+
+async function pushToSheet(){
+  const urlInput  = document.getElementById('updateSheetUrlInput');
+  const btn       = document.getElementById('pushToSheetBtn');
+  const statusDiv = document.getElementById('updateSheetStatus');
+  if(!btn||!statusDiv||!urlInput) return;
+
+  // Extract sheet ID from URL
+  const raw = urlInput.value.trim();
+  if(!raw){ urlInput.style.borderColor='#EF4444'; urlInput.focus(); return; }
+  const match   = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  const sheetId = match ? match[1] : (raw.length>20&&!raw.includes(' ') ? raw : null);
+  if(!sheetId){ urlInput.style.borderColor='#EF4444'; showToast('Paste a valid Google Sheets URL'); return; }
+  urlInput.style.borderColor='#34A853';
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Reading sheet…';
+  btn.style.opacity = '0.7';
+  statusDiv.style.display = 'block';
+  statusDiv.style.background = 'rgba(245,158,11,.08)';
+  statusDiv.style.border = '1px solid rgba(245,158,11,.25)';
+  statusDiv.style.color = '#F59E0B';
+  statusDiv.textContent = '⏳ Connecting to Google Sheets…';
+
+  // Build gantt payload: artist+jira → {status, start, end}
+  const ganttTasks = tasks.filter(t=>t.j).map(t=>({
+    artist:    t.a,
+    jira:      t.j,
+    status:    ST[t.st]?.label || t.st,
+    startDate: t.s || '',
+    dueDate:   t.e || ''
+  }));
+
+  const prompt = `You are a Google Sheets update agent with access to the Scopely Google Docs Suite MCP.
+
+Spreadsheet ID: "${sheetId}"
+Sheet name: "Current Schedule"
+
+The sheet has these columns:
+- Col A = Artist, Col B = Jira Ticket, Col J = Start Date, Col K = Due Date, Col L = Status (the colored dropdown on the right)
+- Data rows start at row 8
+
+Here are the Gantt tasks to sync (${ganttTasks.length} total):
+${JSON.stringify(ganttTasks, null, 2)}
+
+Steps:
+1. Read the sheet range "Current Schedule!A8:L300" to get all current rows
+2. For each Gantt task, find the sheet row where Col A (artist) AND Col B (jira) both match
+3. For matched rows, update ONLY:
+   - Col L = status
+   - Col J = startDate (only if non-empty and not a placeholder like 1/27/27 or 2/24/27)
+   - Col K = dueDate (only if non-empty and not a placeholder like 1/27/27 or 2/24/27)
+4. Do NOT touch any other columns or rows
+5. Reply with a summary of how many rows were updated and any that couldn't be matched`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }],
+        mcp_servers: [{ type: 'url', url: 'https://docsuite.mcp.scopelyai.com/mcp', name: 'google-docs-suite' }]
+      })
+    });
+
+    if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.error?.message||`HTTP ${res.status}`); }
+    const data = await res.json();
+    const resultText = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join(' ').trim() || 'Sheet updated.';
+
+    statusDiv.style.background = 'rgba(52,168,83,.1)';
+    statusDiv.style.border = '1px solid rgba(52,168,83,.3)';
+    statusDiv.style.color = '#34A853';
+    statusDiv.innerHTML = `✅ <strong>Done!</strong> ${resultText}
+      <a href="https://docs.google.com/spreadsheets/d/${sheetId}/edit" target="_blank"
+        style="color:#34A853;font-family:'IBM Plex Mono',monospace;font-size:10px;margin-left:8px;text-decoration:none">↗ Open Sheet</a>`;
+    btn.textContent = '✓ Done';
+    btn.style.background = '#34A853';
+    btn.style.opacity = '1';
+    showToast(`✅ Google Sheet updated!`);
+
+  } catch(err) {
+    statusDiv.style.background = 'rgba(239,68,68,.1)';
+    statusDiv.style.border = '1px solid rgba(239,68,68,.3)';
+    statusDiv.style.color = '#EF4444';
+    statusDiv.innerHTML = `✕ <strong>Failed:</strong> ${err.message}<br>
+      <span style="font-size:10px;color:#884444">Make sure you are logged into Claude.ai with the Scopely Google Docs connector enabled.</span>`;
+    btn.disabled = false;
+    btn.textContent = '↺ Retry';
+    btn.style.opacity = '1';
+    btn.style.background = '#EF4444';
+  }
+}
+
+
+
+
+// Status keyboard shortcuts
+document.addEventListener('keydown', function(e){
+  // Skip if composing (IME input)
+  if(e.isComposing) return;
+  // Skip if typing in a form element
+  const tag = document.activeElement.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  if(e.ctrlKey||e.altKey) return;
+  // Use e.code (physical key) so layout/IME/case don't matter
+  const codeMap = { KeyI:'PROGRESS', KeyD:'DONE', KeyA:'FEEDBACK', KeyT:'TPCI' };
+  if(codeMap[e.code]){
+    e.preventDefault();
+    applyStatusShortcut(codeMap[e.code]);
+    return;
+  }
+  if(e.code==='Escape'){
+    selectedTaskId=null;
+    document.querySelectorAll('.task-bar').forEach(b=>b.classList.remove('selected'));
+  }
+});
+
+</script>
+</body>
+</html>
