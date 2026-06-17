@@ -2697,6 +2697,14 @@ async function syncToSheet(){
   }));
   if(!payload.length){ sheetSyncing=false; setSaveStatus('saved','✓ autosaved'); return; }
 
+  // Build PTO payload: flat list of {artist, start, end, label}
+  const ptoPayload = [];
+  Object.keys(PTO).forEach(function(artist){
+    (PTO[artist]||[]).forEach(function(p){
+      ptoPayload.push({ artist: artist, start: p.s||'', end: p.e||'', label: p.label||'PTO' });
+    });
+  });
+
   const now = new Date();
   const syncLabel = `${sheetUserName||'Unknown'} — ${now.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})} ${now.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}`;
 
@@ -2705,7 +2713,7 @@ async function syncToSheet(){
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ tasks: payload, syncLabel })
+      body: JSON.stringify({ tasks: payload, pto: ptoPayload, syncLabel })
     });
     // no-cors means we can't read the response, but the write still happens
     setSaveStatus('saved', '✓ saved + synced');
