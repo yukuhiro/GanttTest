@@ -899,12 +899,18 @@ function showToast(msg){
 
 // ── HELPERS ──────────────────────────────────────────────────────
 function totalDays(){return Math.ceil((RANGE_END-RANGE_START)/86400000)}
+function safeISO(raw){
+  if(!raw) return '';
+  if(typeof raw==='string' && /^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0,10);
+  const d=new Date(raw); if(isNaN(d)) return '';
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 function parseLocalDate(d){const[y,mo,day]=String(d).slice(0,10).split('-').map(Number);return new Date(y,mo-1,day)}
 function dayOf(d){return Math.round((parseLocalDate(d)-RANGE_START)/86400000)}
 function pxL(d){return dayOf(d)*DAY_W}
 function pxW(s,e){return Math.max((Math.round((parseLocalDate(e)-parseLocalDate(s))/86400000)+1)*DAY_W,DAY_W)}
 function px2d(px){const d=new Date(RANGE_START.getTime()+Math.round(px/DAY_W)*86400000);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function fmt(d){const dt=new Date(d);return`${dt.getMonth()+1}/${dt.getDate()}/${String(dt.getFullYear()).slice(-2)}`}
+function fmt(d){const dt=parseLocalDate(d);return`${dt.getMonth()+1}/${dt.getDate()}/${String(dt.getFullYear()).slice(-2)}`}
 function rowH(n){
   const taskH=Math.max(1,tasks.filter(t=>t.a===n).length)*BAR_SLOT+RPAD*2;
   const ptoPad=(PTO[n]&&PTO[n].length)?30:0; // extra height for PTO badge
@@ -1594,8 +1600,8 @@ function importFromExportedCSV(rows){
     const title=(r[5]||'').trim(); if(!title) continue;
     const startRaw=(r[6]||'').trim();
     const endRaw  =(r[7]||'').trim();
-    const startDate = startRaw&&startRaw!=='(TBD — set start date in Gantt)'&&!isNaN(new Date(startRaw)) ? new Date(startRaw).toISOString().slice(0,10) : '';
-    const endDate   = endRaw&&!isNaN(new Date(endRaw)) ? new Date(endRaw).toISOString().slice(0,10) : addDays(RANGE_END.toISOString().slice(0,10),-30);
+    const startDate = startRaw&&startRaw!=='(TBD — set start date in Gantt)'&&!isNaN(new Date(startRaw)) ? safeISO(startRaw) : '';
+    const endDate   = endRaw&&!isNaN(new Date(endRaw)) ? safeISO(endRaw) : addDays(RANGE_END.toISOString().slice(0,10),-30);
     const status = STATUS_MAP[(r[4]||'').trim()] || 'NOT_STARTED';
     newArtists.add(artist);
     imported.push({id:++nid, a:artist, t:title, s:startDate, e:endDate,
@@ -1722,10 +1728,10 @@ function importFromJiraSheet(data){
       const startRaw=row[9], dueRaw=row[10];
       let start='',due='';
       if(startRaw&&startRaw!=='Ongoing'&&startRaw!=='N/A'){
-        const ds=new Date(startRaw); if(!isNaN(ds)) start=ds.toISOString().slice(0,10);
+        const ds=safeISO(startRaw); if(ds) start=ds;
       }
       if(dueRaw&&dueRaw!=='Ongoing'&&dueRaw!=='N/A'){
-        const d=new Date(dueRaw); if(!isNaN(d)) due=d.toISOString().slice(0,10);
+        const d=safeISO(dueRaw); if(d) due=d;
       }
       if(!due) due=addDays(RANGE_END.toISOString().slice(0,10),-30);
       if(!start && due) start=addDays(due,-28);
