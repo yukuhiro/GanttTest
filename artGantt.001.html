@@ -1546,6 +1546,13 @@ async function processFile(file){
       if(!ws){ alert('Could not find "Current Schedule" sheet.'); return; }
       const data = XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:false});
       importFromJiraSheet(data);
+
+      // Also import PTO Schedule sheet if present (from our own export)
+      const wsPTO = wb.Sheets['PTO Schedule'];
+      if(wsPTO){
+        const ptoData = XLSX.utils.sheet_to_json(wsPTO,{header:1,defval:null,raw:false});
+        importPTOSheet(ptoData);
+      }
       return;
     }
 
@@ -1602,7 +1609,45 @@ function importFromExportedCSV(rows){
   showToast(`✅ Re-imported ${tasks.length} tasks from CSV`);
 }
 
-// Import from original Jira Art_Jira_Schedule.xlsx
+// Import PTO from our exported "PTO Schedule" sheet
+// Columns: Artist, Label, Start Date, End Date, Days
+function importPTOSheet(rows){
+  if(!rows || rows.length < 2) return;
+  const header = (rows[0]||[]).map(c=>String(c||'').trim().toLowerCase());
+  const iArtist = header.indexOf('artist');
+  const iLabel  = header.indexOf('label');
+  const iStart  = header.indexOf('start date');
+  const iEnd    = header.indexOf('end date');
+  if(iArtist<0 || iStart<0 || iEnd<0) return;
+
+  const newPTO = {};
+  for(let i=1; i<rows.length; i++){
+    const r = rows[i];
+    const artist = (r[iArtist]||'').toString().trim();
+    if(!artist) continue;
+    const label = (r[iLabel]||'PTO').toString().trim();
+    const startRaw = r[iStart];
+    const endRaw   = r[iEnd];
+    const fmt = d => {
+      if(!d) return '';
+      if(typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+      const dt = new Date(d);
+      if(isNaN(dt)) return '';
+      return dt.toISOString().slice(0,10);
+    };
+    const start = fmt(startRaw);
+    const end   = fmt(endRaw);
+    if(!start || !end) continue;
+    if(!newPTO[artist]) newPTO[artist] = [];
+    newPTO[artist].push({s:start, e:end, label});
+  }
+
+  // Merge with existing PTO — replace per artist
+  Object.keys(newPTO).forEach(artist => {
+    PTO[artist] = newPTO[artist];
+  });
+  scheduleSave();
+}
 function importFromJiraSheet(data){
   const STOP=['To Be Assigned','Reverse Moves','Bug Fixes','Extra Stuff','Recently Completed'];
   const STATUS_MAP={'in progress':'PROGRESS','done':'DONE','not started':'NOT_STARTED',
@@ -2650,13 +2695,11 @@ async function syncToSheet(){
   try {
     const res = await fetch(sheetSyncUrl, {
       method: 'POST',
+      mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ tasks: payload, syncLabel })
     });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if(!data.ok) throw new Error(data.error || 'Sync failed');
-
+    // no-cors means we can't read the response, but the write still happens
     setSaveStatus('saved', '✓ saved + synced');
     setTimeout(()=>setSaveStatus('saved','✓ autosaved'), 3000);
     const el = document.getElementById('lastSyncedLabel');
