@@ -760,8 +760,8 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--txt
 
 <script>
 const JIRA_BASE = 'https://niantic.atlassian.net/browse/';
-let RANGE_START = new Date('2026-01-01');
-let RANGE_END   = new Date('2026-07-01');
+let RANGE_START = new Date(2026, 0, 1);  // local midnight Jan 1 2026
+let RANGE_END   = new Date(2027, 0, 1);  // local midnight Jan 1 2027
 const TODAY     = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })();
 let DAY_W       = 4.6;
 let PTO         = {}; // { artistName: [{s,e,label}] }
@@ -903,7 +903,7 @@ function parseLocalDate(d){const[y,mo,day]=String(d).slice(0,10).split('-').map(
 function dayOf(d){return Math.round((parseLocalDate(d)-RANGE_START)/86400000)}
 function pxL(d){return dayOf(d)*DAY_W}
 function pxW(s,e){return Math.max((Math.round((parseLocalDate(e)-parseLocalDate(s))/86400000)+1)*DAY_W,DAY_W)}
-function px2d(px){const d=new Date(RANGE_START.getTime()+Math.round(px/DAY_W)*86400000);return d.toISOString().slice(0,10)}
+function px2d(px){const d=new Date(RANGE_START.getTime()+Math.round(px/DAY_W)*86400000);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function fmt(d){const dt=new Date(d);return`${dt.getMonth()+1}/${dt.getDate()}/${String(dt.getFullYear()).slice(-2)}`}
 function rowH(n){
   const taskH=Math.max(1,tasks.filter(t=>t.a===n).length)*BAR_SLOT+RPAD*2;
@@ -1550,7 +1550,7 @@ async function processFile(file){
       // Also import PTO Schedule sheet if present (from our own export)
       const wsPTO = wb.Sheets['PTO Schedule'];
       if(wsPTO){
-        const ptoData = XLSX.utils.sheet_to_json(wsPTO,{header:1,defval:null,raw:false});
+        const ptoData = XLSX.utils.sheet_to_json(wsPTO,{header:1,defval:null,raw:true});
         importPTOSheet(ptoData);
       }
       return;
@@ -1630,6 +1630,14 @@ function importPTOSheet(rows){
     const endRaw   = r[iEnd];
     const fmt = d => {
       if(!d) return '';
+      // Excel serial number (e.g. 46952)
+      if(typeof d === 'number'){
+        const date = new Date(Math.round((d - 25569) * 86400 * 1000));
+        return date.getUTCFullYear()+'-'+String(date.getUTCMonth()+1).padStart(2,'0')+'-'+String(date.getUTCDate()).padStart(2,'0');
+      }
+      // JS Date object
+      if(d instanceof Date) return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      // String
       if(typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
       const dt = new Date(d);
       if(isNaN(dt)) return '';
