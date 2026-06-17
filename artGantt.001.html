@@ -2694,7 +2694,7 @@ async function syncToSheet(){
   sheetSyncing = true;
   setSaveStatus('saving', '⬆ syncing…');
 
-  const payload = tasks.filter(t=>t.j).map(t=>({
+  const payload = tasks.map(t=>({  // include all tasks, Jira or not
     artist:    t.a,
     jira:      t.j,
     status:    ST[t.st]?.label || t.st,
