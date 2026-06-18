@@ -2697,6 +2697,7 @@ async function syncToSheet(){
   const payload = tasks.map(t=>({  // include all tasks, Jira or not
     artist:    t.a,
     jira:      t.j,
+    task:      t.t || '',
     status:    ST[t.st]?.label || t.st,
     startDate: t.s || '',
     dueDate:   t.e || ''
