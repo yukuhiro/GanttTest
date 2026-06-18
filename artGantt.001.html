@@ -2718,17 +2718,26 @@ async function syncToSheet(){
   try {
     const res = await fetch(sheetSyncUrl, {
       method: 'POST',
-      mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ tasks: payload, pto: ptoPayload, syncLabel })
     });
-    // no-cors means we can't read the response, but the write still happens
-    setSaveStatus('saved', '✓ saved + synced');
-    setTimeout(()=>setSaveStatus('saved','✓ autosaved'), 3000);
+    const json = await res.json().catch(()=>null);
+    if(json && json.ok === false){
+      showToast('⚠ Sheet sync error: ' + (json.error||'unknown'), 5000);
+      setSaveStatus('saved', '✓ saved (sync error)');
+    } else if(json && json.ok){
+      const msg = `✓ synced — updated ${json.updated||0}, added ${json.added||0}`;
+      showToast(msg, 4000);
+      setSaveStatus('saved', '✓ saved + synced');
+    } else {
+      setSaveStatus('saved', '✓ saved + synced');
+    }
+    setTimeout(()=>setSaveStatus('saved','✓ autosaved'), 4000);
     const el = document.getElementById('lastSyncedLabel');
     if(el){ el.textContent='👤 '+syncLabel; el.style.display='inline-block'; }
   } catch(e){
-    setSaveStatus('saved', '✓ saved (sheet sync failed)');
+    showToast('⚠ Sheet sync failed: ' + e.message, 5000);
+    setSaveStatus('saved', '✓ saved (sync failed)');
     console.warn('Sheet sync failed:', e);
   } finally {
     sheetSyncing = false;
